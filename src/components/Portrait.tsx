@@ -1,3 +1,4 @@
+import { withBase } from "./CardArt";
 import portraitsCut from "../data/portraitsCut.json";
 import portraits from "../data/portraits.json";
 
@@ -5,8 +6,8 @@ const CUT = portraitsCut as Record<string, string>;
 const RAW = portraits as Record<string, string>;
 
 export function portraitUrl(member: string, preferCut = true): string | undefined {
-  if (preferCut && CUT[member]) return CUT[member];
-  return RAW[member];
+  if (preferCut && CUT[member]) return withBase(CUT[member]);
+  return withBase(RAW[member]);
 }
 
 type Props = {

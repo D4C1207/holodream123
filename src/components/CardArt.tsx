@@ -1,9 +1,18 @@
 import cardImages from "../data/cardImages.json";
 
 const CARD_MAP = cardImages as Record<string, string>;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** Resolve public asset paths under Vite base (e.g. /holodream on GitHub Pages). */
+export function withBase(path: string | undefined): string | undefined {
+  if (!path) return undefined;
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${BASE}${normalized}`;
+}
 
 export function cardArtUrl(cardId: string): string | undefined {
-  return CARD_MAP[cardId];
+  return withBase(CARD_MAP[cardId]);
 }
 
 type Props = {
