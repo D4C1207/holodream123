@@ -1,0 +1,5 @@
+# Cloudflare Pages / Netlify：所有路徑回傳 index.html（本站無前端路由也可保留）
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
