@@ -54,6 +54,11 @@ export type Messages = {
   trackAria: string;
   trackOverall: string;
   trackOverallDesc: string;
+  prBaselineNote: string;
+  allowDupSkills: string;
+  allowDupSkillsHint: string;
+  skillDupWarn: string;
+  skillDupPair: (a: string, b: string) => string;
   trackStats: string;
   trackStatsDesc: string;
   trackCoverage: string;
@@ -198,7 +203,14 @@ const zh: Messages = {
   resultsEmpty: "請先在上方選擇隊長與衣裝。",
   trackAria: "推薦導向",
   trackOverall: "最強隊伍",
-  trackOverallDesc: "衣裝＋被動前提下，三圍／覆蓋／平均 UP 合成 PR 前 8",
+  trackOverallDesc:
+    "衣裝＋被動前提下，三圍／覆蓋／平均 UP 相對「同衣裝無指定隊員最強隊」合成 PR 前 8",
+  prBaselineNote:
+    "PR 以該隊長衣裝、未指定想要隊員時的最強隊伍（需滿足衣裝＋全員被動）為 1000 分基準。",
+  allowDupSkills: "允許主動技能重複",
+  allowDupSkillsHint: "關閉後排除主動 Score UP 時程／倍率相同的編成",
+  skillDupWarn: "主動技能重複",
+  skillDupPair: (a, b) => `${a} 與 ${b} 主動 Score UP 時程相同（重疊不疊加）`,
   trackStats: "三圍總和",
   trackStatsDesc: "衣裝＋被動優先，加成後三圍前 8",
   trackCoverage: "技能覆蓋率",
@@ -347,7 +359,15 @@ const en: Messages = {
   resultsEmpty: "Choose a captain and costume above first.",
   trackAria: "Ranking focus",
   trackOverall: "Best overall",
-  trackOverallDesc: "Costume + passives first, then PR from stats / coverage / avg UP — top 8",
+  trackOverallDesc:
+    "Costume + passives first; PR from stats / coverage / avg UP vs unconstrained best under this costume — top 8",
+  prBaselineNote:
+    "PR 1000 = best team for this captain costume with no locked wanted members (costume + all passives required).",
+  allowDupSkills: "Allow duplicate active skills",
+  allowDupSkillsHint: "Off excludes teams whose active Score UP timing/potency match",
+  skillDupWarn: "Duplicate active skills",
+  skillDupPair: (a, b) =>
+    `${a} and ${b} share the same active Score UP timing (overlaps do not stack)`,
   trackStats: "Total stats",
   trackStatsDesc: "Costume + passives first, then buffed stats — top 8",
   trackCoverage: "Skill coverage",
@@ -497,7 +517,15 @@ const ja: Messages = {
   resultsEmpty: "上でキャプテンと衣装を選んでください。",
   trackAria: "ランキング観点",
   trackOverall: "総合最強",
-  trackOverallDesc: "衣装＋パッシブ優先のうえ、ステ／カバー／平均UPの合成PR上位8",
+  trackOverallDesc:
+    "衣装＋パッシブ優先。同衣装・指名なし最強編成を基準にステ／カバー／平均UPからPR上位8",
+  prBaselineNote:
+    "PR1000＝このキャプテン衣装で、入れたいメンバー未指定時の最強編成（衣装＋パッシブ全達成）。",
+  allowDupSkills: "同一アクティブスキルを許可",
+  allowDupSkillsHint: "OFFにすると Score UP の間隔・倍率などが同じ編成を除外",
+  skillDupWarn: "アクティブスキル重複",
+  skillDupPair: (a, b) =>
+    `${a} と ${b} はアクティブ Score UP のタイミングが同じ（重複は加算されない）`,
   trackStats: "ステータス合計",
   trackStatsDesc: "衣装＋パッシブ優先、バフ後ステ上位8",
   trackCoverage: "スキルカバー率",

@@ -46,6 +46,7 @@ type OptimizeUiResult = {
   byStats: TeamEvaluation[];
   byCoverage: TeamEvaluation[];
   byAvgScoreUp: TeamEvaluation[];
+  baselineTeam: TeamEvaluation | null;
   searched: number;
   elapsedMs: number;
 };
@@ -87,6 +88,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [cardsCompact, setCardsCompact] = useState(false);
+  const [allowDuplicateSkills, setAllowDuplicateSkills] = useState(true);
 
   const wantedSet = useMemo(() => new Set(wantedMembers), [wantedMembers]);
 
@@ -310,6 +312,7 @@ export default function App() {
         preferredCardByMember: preferredCards,
         rarityFilter: rarityFilters.length ? rarityFilters : undefined,
         maxResults: 8,
+        allowDuplicateSkills,
       });
       setResult(out);
       setResultTrack("overall");
@@ -638,6 +641,20 @@ export default function App() {
             {leaderMember ? t.wantedWithLeader(requiredCount) : ""}
           </h2>
           <p className="panel-note">{t.wantedNote}</p>
+          <label className="dup-option">
+            <input
+              type="checkbox"
+              checked={allowDuplicateSkills}
+              onChange={(e) => {
+                setAllowDuplicateSkills(e.target.checked);
+                setResult(null);
+              }}
+            />
+            <span>
+              {t.allowDupSkills}
+              <small>{t.allowDupSkillsHint}</small>
+            </span>
+          </label>
           <CardFilterToolbar
             filterOpen={filterOpen}
             onToggleOpen={() => setFilterOpen((v) => !v)}
@@ -767,6 +784,10 @@ export default function App() {
                 ))}
               </div>
 
+              {resultTrack === "overall" && result.baselineTeam && (
+                <p className="pr-baseline-note">{t.prBaselineNote}</p>
+              )}
+
               <div className="result-split">
                 <aside className="result-rank-col">
                   <div className="track-picks track-picks-vertical">
@@ -780,7 +801,24 @@ export default function App() {
                           className={`track-pick ${idx === selectedIdx ? "active" : ""}`}
                           onClick={() => setSelectedIdx(idx)}
                         >
-                          <span className={`track-pick-rank ${rankClass(idx)}`}>{idx + 1}</span>
+                          <span className={`track-pick-rank ${rankClass(idx)}`}>
+                            {idx + 1}
+                            {ev.activeDuplicates.length > 0 && (
+                              <span
+                                className="skill-dup-mark"
+                                title={ev.activeDuplicates
+                                  .map((d) =>
+                                    t.skillDupPair(
+                                      listName(d.members[0], unitsOf(d.members[0]), locale),
+                                      listName(d.members[1], unitsOf(d.members[1]), locale),
+                                    ),
+                                  )
+                                  .join("\n")}
+                              >
+                                !
+                              </span>
+                            )}
+                          </span>
                           <span className="track-pick-names-col">
                             {ev.cards.map((c) => (
                               <span key={c.id} className="track-pick-name-line">
@@ -870,6 +908,27 @@ export default function App() {
                 <strong>{t.leaderCostume}</strong>
                 <span>{formatCostumeSkillText(selected.costume.skill, locale)}</span>
               </div>
+
+              {selected.activeDuplicates.length > 0 && (
+                <div className="skill-dup-banner" role="alert">
+                  <span className="skill-dup-mark" aria-hidden>
+                    !
+                  </span>
+                  <div>
+                    <strong>{t.skillDupWarn}</strong>
+                    <ul>
+                      {selected.activeDuplicates.map((d) => (
+                        <li key={`${d.cardIds[0]}-${d.cardIds[1]}`}>
+                          {t.skillDupPair(
+                            listName(d.members[0], unitsOf(d.members[0]), locale),
+                            listName(d.members[1], unitsOf(d.members[1]), locale),
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
 
               <div className="team">
                 {selected.cards.map((card, i) => {

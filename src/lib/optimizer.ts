@@ -25,6 +25,11 @@ export interface OptimizeOptions {
   /** Prefer only these rarities when picking a card per member. Empty = any. */
   rarityFilter?: number[];
   maxResults?: number;
+  /**
+   * When false, teams with duplicate active Score UP signatures are excluded.
+   * Default true.
+   */
+  allowDuplicateSkills?: boolean;
 }
 
 export interface OptimizeResult {
@@ -33,7 +38,7 @@ export interface OptimizeResult {
   top: TeamEvaluation[];
   /**
    * 最強隊伍：衣裝＋全員被動前提下，
-   * 以三圍／覆蓋率／平均 UP 正規化合成 PR 取前 8。
+   * 以三圍／覆蓋率／平均 UP 相對基準隊合成 PR 取前 8。
    */
   byOverall: TeamEvaluation[];
   /** Top by effective 三圍 (after costume + all-passives priority). */
@@ -42,8 +47,45 @@ export interface OptimizeResult {
   byCoverage: TeamEvaluation[];
   /** Top by average Score UP % (after costume + all-passives priority). */
   byAvgScoreUp: TeamEvaluation[];
+  /**
+   * Unconstrained best under the same captain costume (no wanted members),
+   * used as PR = 1000 reference. Null when not applicable.
+   */
+  baselineTeam: TeamEvaluation | null;
   searched: number;
   elapsedMs: number;
+}
+
+/** Active Score UP fingerprint — identical timing/potency = wasted overlap. */
+export function activeSkillSignature(card: Card): string {
+  const a = card.active;
+  const bonus = a.bonus ? String(a.bonus.scoreUp) : "-";
+  return `${a.interval}|${a.duration}|${a.scoreUp}|${bonus}|${a.probabilityLabel}`;
+}
+
+export function findActiveDuplicates(
+  cards: Card[],
+): Array<{ members: [string, string]; cardIds: [string, string] }> {
+  const bySig = new Map<string, Card[]>();
+  for (const c of cards) {
+    const sig = activeSkillSignature(c);
+    const list = bySig.get(sig) ?? [];
+    list.push(c);
+    bySig.set(sig, list);
+  }
+  const pairs: Array<{ members: [string, string]; cardIds: [string, string] }> = [];
+  for (const group of bySig.values()) {
+    if (group.length < 2) continue;
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        pairs.push({
+          members: [group[i].member, group[j].member],
+          cardIds: [group[i].id, group[j].id],
+        });
+      }
+    }
+  }
+  return pairs;
 }
 
 function teamKey(ev: TeamEvaluation): string {
@@ -88,8 +130,21 @@ function minMaxNorm(values: number[], v: number): number {
   return (v - lo) / (hi - lo);
 }
 
-/** Build overall PR ranking from a candidate pool. */
-function rankByPowerRating(pool: TeamEvaluation[], max: number): TeamEvaluation[] {
+function ratioToBaseline(value: number, base: number): number {
+  if (base <= 1e-9) return 1;
+  return value / base;
+}
+
+/**
+ * Build overall PR ranking.
+ * When baseline is set (unconstrained best under same costume),
+ * PR = mean(stats/base, coverage/base, avgUP/base) × 1000.
+ */
+function rankByPowerRating(
+  pool: TeamEvaluation[],
+  max: number,
+  baseline: TeamEvaluation | null,
+): TeamEvaluation[] {
   if (!pool.length) return [];
 
   const preferred = pool.filter((t) => t.costumeSatisfied && t.allPassivesSatisfied);
@@ -100,12 +155,20 @@ function rankByPowerRating(pool: TeamEvaluation[], max: number): TeamEvaluation[
   const avg = use.map((t) => t.avgScoreUp);
 
   const scored = use.map((t) => {
-    const pr =
-      ((minMaxNorm(stats, t.effectiveStatTotal) +
-        minMaxNorm(cov, t.coverage) +
-        minMaxNorm(avg, t.avgScoreUp)) /
-        3) *
-      1000;
+    let pr: number;
+    if (baseline) {
+      const s = ratioToBaseline(t.effectiveStatTotal, baseline.effectiveStatTotal);
+      const c = ratioToBaseline(t.coverage, baseline.coverage);
+      const a = ratioToBaseline(t.avgScoreUp, baseline.avgScoreUp);
+      pr = ((s + c + a) / 3) * 1000;
+    } else {
+      pr =
+        ((minMaxNorm(stats, t.effectiveStatTotal) +
+          minMaxNorm(cov, t.coverage) +
+          minMaxNorm(avg, t.avgScoreUp)) /
+          3) *
+        1000;
+    }
     return { t, pr };
   });
 
@@ -124,6 +187,19 @@ function rankByPowerRating(pool: TeamEvaluation[], max: number): TeamEvaluation[
   }));
 }
 
+function pickBaselineTeam(result: OptimizeResult): TeamEvaluation | null {
+  const pools = [
+    ...result.byOverall,
+    ...result.byStats,
+    ...result.byCoverage,
+    ...result.byAvgScoreUp,
+    ...result.top,
+  ];
+  const ok = pools.filter((t) => t.costumeSatisfied && t.allPassivesSatisfied);
+  if (!ok.length) return null;
+  return [...ok].sort((a, b) => compareEval(b, a))[0];
+}
+
 function emptyResult(started: number): OptimizeResult {
   return {
     best: null,
@@ -132,6 +208,7 @@ function emptyResult(started: number): OptimizeResult {
     byStats: [],
     byCoverage: [],
     byAvgScoreUp: [],
+    baselineTeam: null,
     searched: 0,
     elapsedMs: performance.now() - started,
   };
@@ -145,8 +222,9 @@ function finishResult(
   searched: number,
   started: number,
   trackSize: number,
+  baseline: TeamEvaluation | null,
 ): OptimizeResult {
-  const byOverall = rankByPowerRating(prPool, trackSize);
+  const byOverall = rankByPowerRating(prPool, trackSize, baseline);
   const seen = new Set<string>();
   const top: TeamEvaluation[] = [];
   for (const list of [byOverall, byAvgScoreUp, byCoverage, byStats]) {
@@ -164,6 +242,7 @@ function finishResult(
     byStats,
     byCoverage,
     byAvgScoreUp,
+    baselineTeam: baseline,
     searched,
     elapsedMs: performance.now() - started,
   };
@@ -276,6 +355,8 @@ export function evaluateTeam(
     data,
   );
 
+  const activeDuplicates = findActiveDuplicates(cards);
+
   return {
     cards,
     leaderIndex,
@@ -306,6 +387,7 @@ export function evaluateTeam(
     })),
     typeCounts,
     unitCounts,
+    activeDuplicates,
   };
 }
 
@@ -348,7 +430,9 @@ function recordCandidate(
   maxComposite: number,
   maxPerTrack: number,
   prPoolSize: number,
+  allowDuplicateSkills: boolean,
 ) {
+  if (!allowDuplicateSkills && ev.activeDuplicates.length > 0) return;
   insertTop(composite, ev, maxComposite);
   insertByMetric(byStats, ev, maxPerTrack, (t) => t.effectiveStatTotal);
   insertByMetric(byCoverage, ev, maxPerTrack, (t) => t.coverage);
@@ -399,6 +483,19 @@ export function optimizeTeam(data: GameData, options: OptimizeOptions): Optimize
   const maxResults = options.maxResults ?? 8;
   const songLength = options.songLength;
   const preferred = options.preferredCardByMember ?? {};
+  const allowDup = options.allowDuplicateSkills !== false;
+  const wanted = (options.fixedMembers ?? []).filter((m) => m && m !== options.fixedLeader);
+
+  // PR ceiling: strongest team under this costume with no wanted members.
+  let baseline: TeamEvaluation | null = null;
+  if (options.fixedLeader && options.fixedCostumeId && wanted.length > 0) {
+    const free = optimizeTeam(data, {
+      ...options,
+      fixedMembers: [],
+      allowDuplicateSkills: true,
+    });
+    baseline = free.baselineTeam ?? pickBaselineTeam(free);
+  }
 
   const ownedCards = data.cards.filter((c) => options.ownedCardIds.has(c.id));
   const byMember = new Map<string, Card[]>();
@@ -466,7 +563,6 @@ export function optimizeTeam(data: GameData, options: OptimizeOptions): Optimize
   const requiredList = memberCards.filter((m) => required.has(m.member));
   let fillers = memberCards.filter((m) => !required.has(m.member));
 
-  // When costume is fixed, prioritize high-stat members that help its condition.
   if (costumePrefer) {
     fillers = [...fillers].sort(
       (a, b) =>
@@ -510,12 +606,39 @@ export function optimizeTeam(data: GameData, options: OptimizeOptions): Optimize
           maxResults,
           maxPerTrack,
           prPoolSize,
+          allowDup,
         );
       }
     }
   }
 
-  return finishResult(byStats, byCoverage, byAvgScoreUp, prPool, searched, started, maxPerTrack);
+  const result = finishResult(
+    byStats,
+    byCoverage,
+    byAvgScoreUp,
+    prPool,
+    searched,
+    started,
+    maxPerTrack,
+    baseline,
+  );
+
+  // No wanted members: this search defines the PR baseline.
+  if (!baseline && options.fixedLeader && options.fixedCostumeId && wanted.length === 0) {
+    const base = pickBaselineTeam(result);
+    return finishResult(
+      byStats,
+      byCoverage,
+      byAvgScoreUp,
+      prPool,
+      searched,
+      started,
+      maxPerTrack,
+      base,
+    );
+  }
+
+  return result;
 }
 
 /** Heuristic for large boxes: seed from strong owned costumes, then fill. */
@@ -536,6 +659,7 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
   const maxPerTrack = 8;
   const prPoolSize = 96;
   const preferred = options.preferredCardByMember ?? {};
+  const allowDup = options.allowDuplicateSkills !== false;
   const ownedCards = data.cards.filter((c) => options.ownedCardIds.has(c.id));
   const byMember = new Map<string, Card[]>();
   for (const c of ownedCards) {
@@ -603,6 +727,7 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
         maxResults,
         maxPerTrack,
         prPoolSize,
+        allowDup,
       );
     }
   }
@@ -611,5 +736,14 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
     return optimizeTeam(data, options);
   }
 
-  return finishResult(byStats, byCoverage, byAvgScoreUp, prPool, searched, started, maxPerTrack);
+  return finishResult(
+    byStats,
+    byCoverage,
+    byAvgScoreUp,
+    prPool,
+    searched,
+    started,
+    maxPerTrack,
+    null,
+  );
 }
