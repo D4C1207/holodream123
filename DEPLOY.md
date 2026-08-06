@@ -34,14 +34,14 @@ git init
 git add .
 git commit -m "Publish Hololive Dreams tools as static site"
 git branch -M main
-git remote add origin https://github.com/holodreams123/holodream.git
+git remote add origin https://github.com/holodreams123-afk/holodream.git
 git push -u origin main
 ```
 
 3. GitHub → **Settings → Pages** → Build and deployment 選 **GitHub Actions**。
 4. 等 Actions 跑完，網址會類似：
 
-`https://holodreams123.github.io/holodream/`
+`https://holodreams123-afk.github.io/holodream/`
 
 之後只要 `git push`，網站會自動更新。
 

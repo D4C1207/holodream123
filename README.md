@@ -5,7 +5,7 @@
 
 ## 給大家用（公開網站）
 
-**https://holodreams123.github.io/holodream/**
+**https://holodreams123-afk.github.io/holodream/**
 
 **請用雲端靜態託管，不要把你家電腦的埠開出去。**  
 步驟與資安說明見 → [DEPLOY.md](./DEPLOY.md)
