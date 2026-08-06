@@ -135,7 +135,7 @@ for (const ch of chars) {
       artUrl = best.ico;
     }
 
-    const safeId = card.id.replace(/[\\/:*?"<>|]/g, "_");
+    const safeId = card.id.replace(/[\\/:*?"<>|']/g, "_");
     const file = `${safeId}.webp`;
     const dest = path.join(outDir, file);
     try {
