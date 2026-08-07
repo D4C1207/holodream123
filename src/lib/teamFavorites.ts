@@ -10,9 +10,12 @@ export type TeamFavorite = {
   effectiveStatTotal: number;
   coverage: number;
   avgScoreUp: number;
+  tags: string[];
 };
 
-export type NewTeamFavorite = Omit<TeamFavorite, "id" | "savedAt">;
+export type NewTeamFavorite = Omit<TeamFavorite, "id" | "savedAt" | "tags"> & {
+  tags?: string[];
+};
 
 const STORAGE_TEAM_FAVORITES = "holodream-team-favorites-v1";
 
@@ -27,10 +30,15 @@ function makeId(): string {
   return `fav-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function isFavorite(value: unknown): value is TeamFavorite {
-  if (!value || typeof value !== "object") return false;
+function normalizeTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))].slice(0, 8);
+}
+
+function parseFavorite(value: unknown): TeamFavorite | null {
+  if (!value || typeof value !== "object") return null;
   const item = value as Partial<TeamFavorite>;
-  return (
+  const valid =
     typeof item.id === "string" &&
     typeof item.accountId === "string" &&
     typeof item.accountName === "string" &&
@@ -42,8 +50,22 @@ function isFavorite(value: unknown): value is TeamFavorite {
     (item.powerRating === null || typeof item.powerRating === "number") &&
     typeof item.effectiveStatTotal === "number" &&
     typeof item.coverage === "number" &&
-    typeof item.avgScoreUp === "number"
-  );
+    typeof item.avgScoreUp === "number";
+  if (!valid) return null;
+  return {
+    id: item.id,
+    accountId: item.accountId,
+    accountName: item.accountName,
+    savedAt: item.savedAt,
+    cardIds: [...item.cardIds],
+    costumeId: item.costumeId,
+    leaderIndex: item.leaderIndex,
+    powerRating: item.powerRating ?? null,
+    effectiveStatTotal: item.effectiveStatTotal,
+    coverage: item.coverage,
+    avgScoreUp: item.avgScoreUp,
+    tags: normalizeTags(item.tags),
+  };
 }
 
 export function loadTeamFavorites(): TeamFavorite[] {
@@ -52,7 +74,10 @@ export function loadTeamFavorites(): TeamFavorite[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isFavorite).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+    return parsed
+      .map(parseFavorite)
+      .filter((item): item is TeamFavorite => item !== null)
+      .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   } catch {
     return [];
   }
@@ -73,6 +98,10 @@ export function addTeamFavorite(
   input: NewTeamFavorite,
 ): TeamFavorite[] {
   const key = `${input.accountId}|${input.costumeId}|${input.leaderIndex}|${input.cardIds.join(",")}`;
+  const previous = favorites.find(
+    (item) =>
+      `${item.accountId}|${item.costumeId}|${item.leaderIndex}|${item.cardIds.join(",")}` === key,
+  );
   const withoutSame = favorites.filter(
     (item) =>
       `${item.accountId}|${item.costumeId}|${item.leaderIndex}|${item.cardIds.join(",")}` !== key,
@@ -80,6 +109,7 @@ export function addTeamFavorite(
   return persistTeamFavorites([
     {
       ...input,
+      tags: normalizeTags(input.tags ?? previous?.tags ?? []),
       id: makeId(),
       savedAt: new Date().toISOString(),
     },
@@ -92,4 +122,16 @@ export function removeTeamFavorite(
   favoriteId: string,
 ): TeamFavorite[] {
   return persistTeamFavorites(favorites.filter((item) => item.id !== favoriteId));
+}
+
+export function updateTeamFavoriteTags(
+  favorites: TeamFavorite[],
+  favoriteId: string,
+  tags: string[],
+): TeamFavorite[] {
+  return persistTeamFavorites(
+    favorites.map((item) =>
+      item.id === favoriteId ? { ...item, tags: normalizeTags(tags) } : item,
+    ),
+  );
 }
