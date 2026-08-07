@@ -1,72 +1,50 @@
-# 公開部署說明（資安安全版）
+# D4C 公開部署說明
 
-本工具是**純前端靜態網頁**：沒有後端、沒有資料庫、沒有登入。  
-訪客瀏覽器只會下載 HTML／JS／圖片，**計算全部在對方電腦完成**，不會連到你家的電腦。
+本工具是**純前端靜態網頁**。訪客只會下載 HTML／JavaScript／CSS／圖片，主要計算在瀏覽器端完成，不需要把個人電腦或家用網路對外開放。
 
-## 為什麼這樣比較安全？
+## 正式網站
 
-| 做法 | 風險 |
-| --- | --- |
-| 在家用 `npm run dev -- --host` 或開路由器埠給別人用 | 高：外人可能掃到你的電腦／區網 |
-| 把網站丟到 **GitHub Pages／Cloudflare Pages／Netlify** | 低：流量打在雲端 CDN，你家電腦離線也沒差 |
+D4C 版本使用 GitHub Pages：
 
-**請不要**為了分享而：
+**https://d4c1207.github.io/holodream123/**
 
-- 對路由器做埠轉發（port forward）
-- 用 `ngrok`／內網穿透把本機 `5173` 公開
-- 在 Vite 設 `host: true` 再對外分享 IP
+Repository：`D4C1207/holodream123`
 
-本專案的 `vite.config.ts` 已把開發伺服器鎖在 `127.0.0.1`（僅本機）。
+## GitHub Pages
 
-## 網站上別人能看到什麼？
+本專案已附 `.github/workflows/deploy-pages.yml`。`main` 有新提交時會：
 
-- 公開的卡牌資料、圖片、介面程式碼（這是前端本來就會下載的）
-- **看不到**你的電腦檔案、區網、Windows 帳號、本機路徑
-- 使用者勾選／語系存在**他們自己瀏覽器**的 `localStorage`，不到你的伺服器（因為根本沒有伺服器）
+1. 安裝 Node.js 22
+2. 執行 `npm ci`
+3. 以 `VITE_BASE=/holodream123/` 建置
+4. 上傳 `dist`
+5. 部署到 GitHub Pages
 
-## 推薦：GitHub Pages（免費）
+GitHub → **Settings → Pages** 的 Build and deployment Source 應使用 **GitHub Actions**。
 
-1. 到 [GitHub](https://github.com) 註冊／登入，新建一個 **Public** repository（例如 `holodream`）。
-2. 在本機專案資料夾執行：
+## 本機開發
 
 ```bash
-git init
-git add .
-git commit -m "Publish Hololive Dreams tools as static site"
-git branch -M main
-git remote add origin https://github.com/holodreams123-afk/holodream.git
-git push -u origin main
+npm install
+npm run dev
 ```
 
-3. GitHub → **Settings → Pages** → Build and deployment 選 **GitHub Actions**。
-4. 等 Actions 跑完，網址會類似：
+開發伺服器僅供本機測試；不要為了分享網站而開路由器埠或把開發伺服器直接暴露到網際網路。
 
-`https://holodreams123-afk.github.io/holodream/`
+正式建置：
 
-之後只要 `git push`，網站會自動更新。
+```bash
+npm run build
+```
 
-> 若 repository 名稱不是 `holodream`，workflow 會用 repo 名稱當路徑，無需改設定。
+## 作者與參考基底
 
-## 更推薦：Cloudflare Pages（免費＋防攻擊較強）
+- 本 Fork 作者／維護：**D4C**
+- 參考原作者：**108_虎太郎**
+- 參考基底：`holodreams123-afk/holodream`
 
-1. 先把專案推到 GitHub（同上）。
-2. 到 [Cloudflare Pages](https://pages.cloudflare.com/) → Create project → 連接 GitHub repo。
-3. 建置設定：
-
-- **Build command:** `npm run build`
-- **Build output directory:** `dist`
-- **環境變數:** 不要設 `VITE_BASE`（預設 `/`）
-
-4. 完成後會得到 `https://xxxx.pages.dev`，也可綁自己的網域。  
-Cloudflare 會擋大量惡意掃描／DDoS，流量不會進你家。
-
-## 一次性上傳（不想用 Git）
-
-1. 本機執行：`npm run build`
-2. 把 `dist` 資料夾整個拖到 [Netlify Drop](https://app.netlify.com/drop) 或 Cloudflare Pages「Direct Upload」  
-即可得到公開網址。之後更新要再上傳一次。
+本版本是在原公開專案基礎上進行修改與擴充，不將原作者的既有成果主張為 D4C 原創。
 
 ## 版權提醒
 
-本工具為粉絲製作的非官方小工具，卡圖／角色為 COVER／QualiArts 等權利方所有。  
-公開分享時請標明非官方、勿用於商業用途。
+本工具為粉絲製作的非官方工具，與 COVER／QualiArts 無關；遊戲角色、圖片與相關素材之權利歸各權利人所有。

@@ -55,7 +55,37 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = meta?.htmlLang ?? "zh-Hant";
   }, [locale]);
 
-  const t = MESSAGES[locale];
+  const t = useMemo<Messages>(() => {
+    const base = MESSAGES[locale];
+    if (locale === "en") {
+      return {
+        ...base,
+        brand: "D4C",
+        brandSub: "Hololive Dreams team tools · D4C edition",
+        madeBy: "Author D4C",
+        footer:
+          "Author D4C · Based on original author 108_虎太郎 / holodreams123-afk/holodream · Data: Game8 / AppMedia / Gamerch",
+      };
+    }
+    if (locale === "ja") {
+      return {
+        ...base,
+        brand: "D4C",
+        brandSub: "Hololive Dreams 編成ツール · D4C版",
+        madeBy: "制作 D4C",
+        footer:
+          "制作 D4C · 原作者 108_虎太郎 / holodreams123-afk/holodream を参考・基盤として改修 · データ：Game8 / AppMedia / Gamerch",
+      };
+    }
+    return {
+      ...base,
+      brand: "D4C",
+      brandSub: "Hololive Dreams 編隊工具 · D4C 維護版",
+      madeBy: "作者 D4C",
+      footer:
+        "作者 D4C · 參考原作者 108_虎太郎 / holodreams123-afk/holodream · 資料對照 Game8 / AppMedia / Gamerch",
+    };
+  }, [locale]);
 
   const value = useMemo<I18nValue>(() => {
     const attrLabel = (attr: Attr) => {

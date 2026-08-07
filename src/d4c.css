@@ -1,0 +1,166 @@
+/* D4C visual layer: intentionally separated from the base project styles. */
+:root {
+  --d4c-cyan: #63eee2;
+  --d4c-blue: #52a7ff;
+  --d4c-violet: #8c79ff;
+  --d4c-surface: rgba(7, 18, 29, 0.82);
+  --d4c-line: rgba(99, 238, 226, 0.22);
+  --d4c-soft-line: rgba(140, 121, 255, 0.18);
+}
+
+html {
+  color-scheme: dark;
+  background: #050910;
+}
+
+body {
+  background:
+    radial-gradient(900px 600px at 7% -8%, rgba(82, 167, 255, 0.18), transparent 58%),
+    radial-gradient(820px 520px at 95% 4%, rgba(140, 121, 255, 0.18), transparent 55%),
+    radial-gradient(720px 480px at 50% 108%, rgba(99, 238, 226, 0.1), transparent 55%),
+    linear-gradient(155deg, #04070d 0%, #07111b 46%, #050a11 100%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(99, 238, 226, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 238, 226, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 82%);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(99, 238, 226, 0.26) !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(135deg, rgba(8, 28, 42, 0.95), rgba(10, 12, 28, 0.92)),
+    radial-gradient(circle at 78% 18%, rgba(140, 121, 255, 0.22), transparent 42%) !important;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.hero::after {
+  content: "D4C";
+  position: absolute;
+  right: clamp(18px, 4vw, 54px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(64px, 12vw, 156px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.07em;
+  color: rgba(99, 238, 226, 0.045);
+  pointer-events: none;
+}
+
+.hero-glow {
+  background: radial-gradient(circle, rgba(99, 238, 226, 0.2), transparent 66%) !important;
+}
+
+.brand {
+  letter-spacing: 0.08em !important;
+  text-shadow:
+    0 0 24px rgba(99, 238, 226, 0.32),
+    0 0 54px rgba(82, 167, 255, 0.12);
+}
+
+.brand-mark {
+  background: linear-gradient(135deg, var(--d4c-cyan), var(--d4c-blue) 52%, var(--d4c-violet)) !important;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow: 0 0 24px rgba(99, 238, 226, 0.42);
+}
+
+.brand-sub,
+.hero-kicker {
+  color: #bcecf1 !important;
+}
+
+.panel,
+.theme-intro,
+.roster-account-bar {
+  border-color: var(--d4c-line) !important;
+  background: linear-gradient(145deg, rgba(7, 20, 31, 0.88), rgba(8, 14, 27, 0.8)) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.lang-btn,
+.theme-tab {
+  border-color: rgba(99, 238, 226, 0.2) !important;
+  background: rgba(6, 17, 28, 0.7) !important;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.lang-btn:hover,
+.theme-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(82, 167, 255, 0.55) !important;
+  box-shadow: 0 8px 24px rgba(82, 167, 255, 0.08);
+}
+
+.lang-btn.active,
+.theme-tab.active {
+  border-color: rgba(99, 238, 226, 0.62) !important;
+  background: linear-gradient(135deg, rgba(99, 238, 226, 0.18), rgba(140, 121, 255, 0.18)) !important;
+  box-shadow:
+    0 0 0 1px rgba(99, 238, 226, 0.06),
+    0 0 24px rgba(99, 238, 226, 0.1);
+}
+
+.btn-primary,
+.fab-optimize {
+  border-color: rgba(99, 238, 226, 0.32) !important;
+  background: linear-gradient(135deg, #27bdb4, #438fff 58%, #7966e7) !important;
+  box-shadow: 0 12px 30px rgba(45, 151, 218, 0.2);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--d4c-cyan) !important;
+  outline-offset: 2px;
+}
+
+.card,
+.card-item,
+.team-card,
+.result-card {
+  border-color: rgba(99, 238, 226, 0.12) !important;
+}
+
+footer,
+.footer {
+  color: rgba(210, 238, 242, 0.78) !important;
+}
+
+@media (max-width: 720px) {
+  .hero::after {
+    right: 18px;
+    top: 24px;
+    transform: none;
+    font-size: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-btn,
+  .theme-tab {
+    transition: none;
+  }
+}

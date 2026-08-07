@@ -1,22 +1,29 @@
-# Hololive Dreams 小工具
+# D4C
 
-製作者：**108_虎太郎**  
-粉絲製作的非官方工具：角色一覽、最強編隊優化（中／英／日介面）。
+**作者：D4C**  
+Hololive Dreams（ホロドリ）粉絲製作的非官方工具：角色一覽、編隊優化與現有隊員配對（中／英／日介面）。
 
-## 給大家用（公開網站）
+## 參考基底與作者說明
 
-**https://holodreams123-afk.github.io/holodream/**
+本版本由 **D4C** 修改、整理並維護。
 
-**請用雲端靜態託管，不要把你家電腦的埠開出去。**  
-步驟與資安說明見 → [DEPLOY.md](./DEPLOY.md)
+本專案參考並基於原作者 **108_虎太郎** 的公開專案 [holodreams123-afk/holodream](https://github.com/holodreams123-afk/holodream) 進行修改與擴充。原始專案的設計、資料整理與既有成果之貢獻歸原作者；此 Fork 的現行版本作者與維護者為 **D4C**。
 
-簡短版：
+> 本工具為粉絲製作的非官方工具，與 COVER／QualiArts 無關。遊戲角色、圖片與相關素材之權利歸各權利人所有。
 
-1. 推到 GitHub（Public repo）
-2. 開 GitHub Pages（已附 Actions）或連到 Cloudflare Pages
-3. 把網址分享給朋友即可
+## 公開網站
 
-訪客只會連到 GitHub／Cloudflare，**連不到你的電腦**。
+**https://d4c1207.github.io/holodream123/**
+
+網站使用 GitHub Pages + GitHub Actions 部署，不需要開放本機連接埠。
+
+## 目前功能
+
+- 角色與卡面瀏覽
+- 最強編隊計算
+- 現有隊員編隊
+- 衣裝技能、被動技能、Score UP 與三圍比較
+- 中文／English／日本語介面
 
 ## 本機開發
 
@@ -25,17 +32,25 @@ npm install
 npm run dev
 ```
 
-開發伺服器只聽 `127.0.0.1`（本機），不會自動對外開放。
+正式建置：
 
-## 配對優先順序（最強編隊）
+```bash
+npm run build
+```
 
-1. 隊長衣裝技能條件
-2. 被動技能全部滿足
-3. 有效 Score UP／覆蓋率（預設曲長 160 秒）
+## 編隊排序概念
+
+1. 衣裝技能條件
+2. 被動技能條件
+3. 有效 Score UP／技能覆蓋率
 4. 加成後三圍
 
-## 注意
+## 資料與聲明
 
-- 卡牌／技能資料整理自公開攻略，可能隨版本更新
-- 數值顯示為滿綻放・滿等
-- 本工具非官方，與 COVER／QualiArts 無關
+- D4C 版本：`D4C1207/holodream123`
+- 參考基底：`holodreams123-afk/holodream`
+- 原作者：108_虎太郎
+- 本 Fork 作者／維護：D4C
+- 卡牌與技能資料來自公開攻略整理，可能隨遊戲版本更新
+- 數值顯示以滿綻放・滿等為基準
+- 本工具非官方，請勿將此專案誤認為遊戲官方服務
