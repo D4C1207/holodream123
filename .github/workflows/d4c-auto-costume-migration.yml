@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/scripts/auto_costume_migration.py
+      - .github/scripts/remove_obsolete_roster_helper.py
       - .github/workflows/d4c-auto-costume-migration.yml
 
 permissions:
@@ -21,21 +22,10 @@ jobs:
           fetch-depth: 0
 
       - name: Apply roster card-to-costume logic
-        run: |
-          python3 .github/scripts/auto_costume_migration.py
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('src/App.tsx')
-          text = path.read_text(encoding='utf-8')
-          old = '''function defaultRosterCardIds(member: string): string[] {
-  return rosterCardsForMember(member).map((c) => c.id);
-}
+        run: python3 .github/scripts/auto_costume_migration.py
 
-'''
-          if text.count(old) != 1:
-              raise SystemExit('obsolete defaultRosterCardIds helper not found exactly once')
-          path.write_text(text.replace(old, '', 1), encoding='utf-8')
-          PY
+      - name: Remove obsolete helper
+        run: python3 .github/scripts/remove_obsolete_roster_helper.py
 
       - name: Verify source changes
         shell: bash
@@ -43,14 +33,8 @@ jobs:
           grep -q 'rosterOwnedCostumeIdsForOptimize' src/App.tsx
           grep -q 'cards.length === 1 ? \[cards\[0\].id\] : \[\]' src/App.tsx
           grep -q 'out\[member\] = normalized' src/lib/rosterProfiles.ts
-          if grep -q 'defaultRosterCardIds' src/App.tsx; then
-            echo 'Obsolete roster helper still exists' >&2
-            exit 1
-          fi
-          if grep -q 'className="roster-costume-pick"' src/App.tsx; then
-            echo 'Manual costume picker still exists' >&2
-            exit 1
-          fi
+          ! grep -q 'defaultRosterCardIds' src/App.tsx
+          ! grep -q 'className="roster-costume-pick"' src/App.tsx
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -72,10 +56,11 @@ jobs:
         run: |
           git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
           rm -f .github/scripts/auto_costume_migration.py
+          rm -f .github/scripts/remove_obsolete_roster_helper.py
           rm -f .github/workflows/d4c-auto-costume-migration.yml
           git config user.name 'D4C1207'
           git config user.email 's1113708@mail.yzu.edu.tw'
-          git add src/App.tsx src/i18n/messages.ts src/lib/rosterProfiles.ts .github/scripts/auto_costume_migration.py .github/workflows/d4c-auto-costume-migration.yml
+          git add src/App.tsx src/i18n/messages.ts src/lib/rosterProfiles.ts .github/scripts/auto_costume_migration.py .github/scripts/remove_obsolete_roster_helper.py .github/workflows/d4c-auto-costume-migration.yml
           git diff --cached --stat
           git commit -m 'Derive costumes from selected owned cards'
           git push origin HEAD:main
