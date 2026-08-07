@@ -175,6 +175,34 @@ function baselineSearchOptions(options: OptimizeOptions): OptimizeOptions {
   };
 }
 
+function fullOptimizerPoolIds(data: GameData): Set<string> {
+  return new Set(
+    data.cards.filter((c) => c.rarity === 5 || !!c.event).map((c) => c.id),
+  );
+}
+
+function fullOptimizerCostumeIds(data: GameData): Set<string> {
+  return new Set(data.costumes.map((c) => c.id));
+}
+
+function computePrBaselineTeam(data: GameData, options: OptimizeOptions): TeamEvaluation | null {
+  if (!options.fixedLeader || !options.fixedCostumeId) return null;
+  const fullPoolCount = countOptimizerPoolCards(data.cards);
+  const cached = hydratePrBaseline(
+    data,
+    getPrBaselineEntry(options.fixedCostumeId, options.songLength, fullPoolCount),
+    options.songLength,
+  );
+  if (cached) return { ...cached, powerRating: PR_MAX };
+  const free = optimizeTeam(data, {
+    ...baselineSearchOptions(options),
+    ownedCardIds: fullOptimizerPoolIds(data),
+    ownedCostumeIds: fullOptimizerCostumeIds(data),
+  });
+  const baseline = free.baselineTeam ?? pickBaselineTeam(free);
+  return baseline ? { ...baseline, powerRating: PR_MAX } : null;
+}
+
 function applyMemberPool(byMember: Map<string, Card[]>, memberPool?: string[]) {
   if (!memberPool?.length) return;
   const allowed = new Set(memberPool);
@@ -223,21 +251,6 @@ export function hydratePrCostumeTop8(
     });
   }
   return out;
-}
-
-function computePrBaselineTeam(data: GameData, options: OptimizeOptions): TeamEvaluation | null {
-  if (!options.fixedLeader || !options.fixedCostumeId) return null;
-  const poolCount = countOptimizerPoolCards(
-    data.cards.filter((c) => options.ownedCardIds.has(c.id)),
-  );
-  const cached = hydratePrBaseline(
-    data,
-    getPrBaselineEntry(options.fixedCostumeId, options.songLength, poolCount),
-    options.songLength,
-  );
-  if (cached) return cached;
-  const free = optimizeTeam(data, baselineSearchOptions(options));
-  return free.baselineTeam ?? pickBaselineTeam(free);
 }
 
 function isSameTeam(a: TeamEvaluation, b: TeamEvaluation): boolean {

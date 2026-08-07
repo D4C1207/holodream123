@@ -463,9 +463,10 @@ export default function App() {
   ) {
     const costumeId = options.fixedCostumeId;
     const noWantedMembers = !options.fixedMembers?.length;
+    const unconstrainedRun = noWantedMembers && !options.memberPool?.length;
     let prFullyCached = false;
 
-    if (sharePr9999Baseline && costumeId) {
+    if (costumeId) {
       prFullyCached = isPrCostumeFullyCached(costumeId, SONG_LENGTH, fullPoolCardCount);
       if (!prFullyCached) {
         await syncSharedPrBaseline(costumeId, SONG_LENGTH, fullPoolCardCount);
@@ -486,7 +487,7 @@ export default function App() {
       });
     };
 
-    if (sharePr9999Baseline && costumeId && noWantedMembers && prFullyCached) {
+    if (sharePr9999Baseline && costumeId && unconstrainedRun && prFullyCached) {
       const entries = getPrCostumeTop8(costumeId, SONG_LENGTH, fullPoolCardCount);
       if (entries?.length) {
         const hydrated = hydratePrCostumeTop8(data, entries, costumeId, SONG_LENGTH);
@@ -510,6 +511,7 @@ export default function App() {
         });
         if (
           sharePr9999Baseline &&
+          unconstrainedRun &&
           !prFullyCached &&
           out.byOverall.length &&
           costumeId
