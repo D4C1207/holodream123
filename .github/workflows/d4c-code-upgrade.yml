@@ -30,86 +30,88 @@ jobs:
           cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13a .d4c-patch/13b1 .d4c-patch/13b2 .d4c-patch/14 | base64 -d > /tmp/d4c.patch
           echo "5122831f0c724fabd08149bc2af355f8567066f47af5e210623946012784a5f9  /tmp/d4c.patch" | sha256sum -c -
 
-      - name: Apply patch by exact source matching
+      - name: Rebuild files from verified hunks
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
 
-          patch = Path('/tmp/d4c.patch').read_text(encoding='utf-8').splitlines(keepends=True)
+          lines = Path('/tmp/d4c.patch').read_text(encoding='utf-8').splitlines(keepends=True)
           files = []
           current = None
           i = 0
-          while i < len(patch):
-              line = patch[i]
+          while i < len(lines):
+              line = lines[i]
               if line.startswith('diff --git '):
                   m = re.match(r'diff --git a/(.*?) b/(.*?)\n?$', line)
                   if not m:
                       raise RuntimeError(f'Bad diff header: {line!r}')
-                  current = {'path': m.group(2), 'new': False, 'hunks': []}
+                  current = {'path': m.group(2), 'new_file': False, 'hunks': []}
                   files.append(current)
                   i += 1
                   continue
               if current is not None and line.startswith('new file mode '):
-                  current['new'] = True
+                  current['new_file'] = True
                   i += 1
                   continue
               if current is not None and line.startswith('@@ '):
+                  m = re.match(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@', line)
+                  if not m:
+                      raise RuntimeError(f'Bad hunk header: {line!r}')
+                  old_start = int(m.group(1))
+                  body = []
                   i += 1
-                  old_lines, new_lines = [], []
-                  while i < len(patch):
-                      body = patch[i]
-                      if body.startswith('@@ ') or body.startswith('diff --git '):
+                  while i < len(lines):
+                      row = lines[i]
+                      if row.startswith('@@ ') or row.startswith('diff --git '):
                           break
-                      if body.startswith('\\ No newline'):
+                      if row.startswith('\\ No newline'):
                           i += 1
                           continue
-                      if not body or body[0] not in ' +-':
+                      if not row or row[0] not in ' +-':
                           break
-                      payload = body[1:]
-                      if body[0] in ' -': old_lines.append(payload)
-                      if body[0] in ' +': new_lines.append(payload)
+                      body.append(row)
                       i += 1
-                  current['hunks'].append((''.join(old_lines), ''.join(new_lines)))
+                  current['hunks'].append((old_start, body))
                   continue
               i += 1
 
           staged = {}
-          errors = []
           for fp in files:
-              target = Path(fp['path'])
-              if fp['new']:
-                  expected = ''.join(new for _, new in fp['hunks'])
-                  if target.exists():
-                      existing = target.read_text(encoding='utf-8')
-                      if existing != expected:
-                          errors.append(f"{fp['path']}: new file already exists with different content")
-                      else:
-                          staged[target] = existing
-                  else:
-                      staged[target] = expected
-                  continue
-              if not target.exists():
-                  errors.append(f"{fp['path']}: target missing")
-                  continue
-              text = target.read_text(encoding='utf-8')
-              for n, (old, new) in enumerate(fp['hunks'], 1):
-                  old_count = text.count(old) if old else 0
-                  new_count = text.count(new) if new else 0
-                  if old_count == 1:
-                      text = text.replace(old, new, 1)
-                  elif old_count == 0 and new_count == 1:
-                      pass
-                  else:
-                      errors.append(f"{fp['path']}: hunk {n} old={old_count} new={new_count}")
-              staged[target] = text
-          if errors:
-              raise RuntimeError('Preflight failed:\n- ' + '\n- '.join(errors))
-          for target, text in staged.items():
-              target.parent.mkdir(parents=True, exist_ok=True)
-              target.write_text(text, encoding='utf-8')
-          print('Applied:', ', '.join(str(p) for p in staged))
+              path = Path(fp['path'])
+              original = [] if fp['new_file'] else path.read_text(encoding='utf-8').splitlines(keepends=True)
+              out = []
+              cursor = 0
+              for hunk_no, (old_start, body) in enumerate(fp['hunks'], 1):
+                  start = 0 if fp['new_file'] else max(0, old_start - 1)
+                  if start < cursor:
+                      raise RuntimeError(f"{fp['path']} hunk {hunk_no}: overlapping old ranges")
+                  out.extend(original[cursor:start])
+                  pos = start
+                  for row in body:
+                      mark, payload = row[0], row[1:]
+                      if mark == '+':
+                          out.append(payload)
+                          continue
+                      if pos >= len(original):
+                          raise RuntimeError(f"{fp['path']} hunk {hunk_no}: old file ended early")
+                      if original[pos] != payload:
+                          raise RuntimeError(
+                              f"{fp['path']} hunk {hunk_no}: line mismatch at old line {pos+1}\n"
+                              f"expected={payload!r}\nactual={original[pos]!r}"
+                          )
+                      if mark == ' ':
+                          out.append(payload)
+                      pos += 1
+                  cursor = pos
+              out.extend(original[cursor:])
+              staged[path] = ''.join(out)
+
+          for path, text in staged.items():
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_text(text, encoding='utf-8')
+              print(f'Rebuilt {path}: {len(text)} chars')
           PY
           test -f src/lib/rosterProfiles.ts
           grep -q 'bootstrapRosterProfiles' src/App.tsx
