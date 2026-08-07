@@ -188,6 +188,15 @@ export type Messages = {
   commentBoardRefresh: string;
   commentBoardClose: string;
   commentBoardBack: string;
+  commentBoardAdminUnlock: string;
+  commentBoardAdminKey: string;
+  commentBoardAdminKeyPlaceholder: string;
+  commentBoardAdminUnlockBtn: string;
+  commentBoardAdminLogout: string;
+  commentBoardAdminBadKey: string;
+  commentBoardDelete: string;
+  commentBoardDeleteConfirm: string;
+  commentBoardDeleteError: string;
 };
 
 const zh: Messages = {
@@ -377,6 +386,15 @@ const zh: Messages = {
   commentBoardRefresh: "重新整理",
   commentBoardClose: "關閉",
   commentBoardBack: "← 返回",
+  commentBoardAdminUnlock: "管理員",
+  commentBoardAdminKey: "管理密碼",
+  commentBoardAdminKeyPlaceholder: "僅管理員知悉的密碼",
+  commentBoardAdminUnlockBtn: "解鎖刪除",
+  commentBoardAdminLogout: "登出管理",
+  commentBoardAdminBadKey: "密碼錯誤",
+  commentBoardDelete: "刪除",
+  commentBoardDeleteConfirm: "確定刪除這則留言？",
+  commentBoardDeleteError: "刪除失敗（密碼可能已變更）",
 };
 
 const en: Messages = {
@@ -571,6 +589,15 @@ const en: Messages = {
   commentBoardRefresh: "Refresh",
   commentBoardClose: "Close",
   commentBoardBack: "← Back",
+  commentBoardAdminUnlock: "Admin",
+  commentBoardAdminKey: "Admin password",
+  commentBoardAdminKeyPlaceholder: "Your secret key",
+  commentBoardAdminUnlockBtn: "Unlock delete",
+  commentBoardAdminLogout: "Sign out admin",
+  commentBoardAdminBadKey: "Wrong password",
+  commentBoardDelete: "Delete",
+  commentBoardDeleteConfirm: "Delete this message?",
+  commentBoardDeleteError: "Delete failed (wrong or expired key?)",
 };
 
 const ja: Messages = {
@@ -765,6 +792,15 @@ const ja: Messages = {
   commentBoardRefresh: "更新",
   commentBoardClose: "閉じる",
   commentBoardBack: "← 戻る",
+  commentBoardAdminUnlock: "管理",
+  commentBoardAdminKey: "管理パスワード",
+  commentBoardAdminKeyPlaceholder: "管理者のみが知る鍵",
+  commentBoardAdminUnlockBtn: "削除を解除",
+  commentBoardAdminLogout: "管理終了",
+  commentBoardAdminBadKey: "パスワードが違います",
+  commentBoardDelete: "削除",
+  commentBoardDeleteConfirm: "このコメントを削除しますか？",
+  commentBoardDeleteError: "削除に失敗しました",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { zh, en, ja };

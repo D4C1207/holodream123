@@ -1650,6 +1650,84 @@ article.card-item {
   width: 4.5rem;
 }
 
+.comment-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.comment-admin-toggle {
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(199, 125, 255, 0.25);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.comment-admin-toggle.is-active {
+  border-color: rgba(255, 77, 158, 0.55);
+  color: #ffb3d9;
+  background: rgba(255, 77, 158, 0.1);
+}
+
+.comment-admin-panel {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(199, 125, 255, 0.15);
+  background: rgba(20, 8, 36, 0.95);
+}
+
+.comment-admin-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.comment-admin-form .comment-field {
+  flex: 1 1 200px;
+  margin: 0;
+}
+
+.comment-admin-logout {
+  display: block;
+  margin: 0 auto;
+  max-width: 640px;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 77, 158, 0.4);
+  background: rgba(255, 77, 158, 0.08);
+  color: #ffb3d9;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.comment-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comment-delete {
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 100, 100, 0.45);
+  background: rgba(255, 60, 60, 0.12);
+  color: #ffaaaa;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.comment-delete:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .comment-page-main {
   flex: 1;
   overflow-y: auto;
