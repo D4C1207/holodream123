@@ -59,3 +59,5 @@ jobs:
           git diff --cached --stat
           git commit -m 'Add D4C decision support tools'
           git push origin HEAD:main
+
+# retry after strict TypeScript compatibility fix
