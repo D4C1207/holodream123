@@ -24,6 +24,11 @@ import { displayName, listName, matchesQuery } from "./lib/names";
 import { captainCostumesForMember } from "./lib/costumes";
 import { optimizeTeamFast } from "./lib/optimizer";
 import {
+  countOptimizerPoolCards,
+  persistSharedPrBaseline,
+  syncSharedPrBaseline,
+} from "./lib/prBaselineStore";
+import {
   formatActiveSkill,
   formatCostumeSkillText,
   formatPassiveSkill,
@@ -443,6 +448,40 @@ export default function App() {
     setSelectedIdx(0);
   }
 
+  function poolCardCountForOwned(ownedCardIds: Set<string>): number {
+    return countOptimizerPoolCards(data.cards.filter((c) => ownedCardIds.has(c.id)));
+  }
+
+  async function prepareAndRunOptimize(ownedCardIds: Set<string>, options: Omit<Parameters<typeof optimizeTeamFast>[1], "ownedCardIds">) {
+    const poolCardCount = poolCardCountForOwned(ownedCardIds);
+    if (options.fixedCostumeId) {
+      await syncSharedPrBaseline(options.fixedCostumeId, SONG_LENGTH, poolCardCount);
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        const out = optimizeTeamFast(data, {
+          ...options,
+          ownedCardIds,
+        });
+        if (out.baselineTeam && options.fixedCostumeId) {
+          void persistSharedPrBaseline(out.baselineTeam, SONG_LENGTH, poolCardCount);
+        }
+        setResult(out);
+        setResultTrack("overall");
+        setSelectedIdx(0);
+        setBusy(false);
+        requestAnimationFrame(() => {
+          document.getElementById("optimize-results")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        });
+        resolve();
+      }, 30);
+    });
+  }
+
   function runOptimize() {
     if (!leaderMember) {
       alert(t.alertNeedLeader);
@@ -454,29 +493,16 @@ export default function App() {
     }
 
     setBusy(true);
-    setTimeout(() => {
-      const out = optimizeTeamFast(data, {
-        ownedCardIds: allCardIds,
-        ownedCostumeIds: allCostumeIds,
-        songLength: SONG_LENGTH,
-        fixedLeader: leaderMember,
-        fixedCostumeId: leaderCostumeId || null,
-        fixedMembers: wantedMembers,
-        preferredCardByMember: preferredCards,
-        maxResults: 8,
-        allowDuplicateSkills,
-      });
-      setResult(out);
-      setResultTrack("overall");
-      setSelectedIdx(0);
-      setBusy(false);
-      requestAnimationFrame(() => {
-        document.getElementById("optimize-results")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      });
-    }, 30);
+    void prepareAndRunOptimize(allCardIds, {
+      ownedCostumeIds: allCostumeIds,
+      songLength: SONG_LENGTH,
+      fixedLeader: leaderMember,
+      fixedCostumeId: leaderCostumeId || null,
+      fixedMembers: wantedMembers,
+      preferredCardByMember: preferredCards,
+      maxResults: 8,
+      allowDuplicateSkills,
+    });
   }
 
   function runRosterOptimize() {
@@ -496,29 +522,16 @@ export default function App() {
     }
 
     setBusy(true);
-    setTimeout(() => {
-      const out = optimizeTeamFast(data, {
-        ownedCardIds: rosterOwnedCardIdsForOptimize(),
-        ownedCostumeIds: allCostumeIds,
-        songLength: SONG_LENGTH,
-        fixedLeader: leaderMember,
-        fixedCostumeId: leaderCostumeId || null,
-        fixedMembers: [],
-        memberPool: ownedRosterMembers,
-        maxResults: 8,
-        allowDuplicateSkills,
-      });
-      setResult(out);
-      setResultTrack("overall");
-      setSelectedIdx(0);
-      setBusy(false);
-      requestAnimationFrame(() => {
-        document.getElementById("optimize-results")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      });
-    }, 30);
+    void prepareAndRunOptimize(rosterOwnedCardIdsForOptimize(), {
+      ownedCostumeIds: allCostumeIds,
+      songLength: SONG_LENGTH,
+      fixedLeader: leaderMember,
+      fixedCostumeId: leaderCostumeId || null,
+      fixedMembers: [],
+      memberPool: ownedRosterMembers,
+      maxResults: 8,
+      allowDuplicateSkills,
+    });
   }
 
   const galleryFilterSummary = [
