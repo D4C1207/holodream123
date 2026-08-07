@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: d4c-core-feature-upgrade
@@ -17,6 +19,9 @@ concurrency:
 jobs:
   upgrade:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout current main
         uses: actions/checkout@v4
@@ -29,23 +34,22 @@ jobs:
         run: |
           cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13a .d4c-patch/13b1 .d4c-patch/13b2 .d4c-patch/14 | base64 -d > /tmp/d4c-features.patch
           echo "5122831f0c724fabd08149bc2af355f8567066f47af5e210623946012784a5f9  /tmp/d4c-features.patch" | sha256sum -c -
+          sed -i '/^index /d' /tmp/d4c-features.patch
 
-      - name: Apply core feature patch
+      - name: Apply core features
         shell: bash
         run: |
-          patch -p1 --forward --batch --fuzz=3 < /tmp/d4c-features.patch
-          if find src -name '*.rej' -print -quit | grep -q .; then
-            echo 'Patch produced reject files.' >&2
-            find src -name '*.rej' -print >&2
-            exit 1
-          fi
-
+          git apply --recount --whitespace=fix /tmp/d4c-features.patch
           test -f src/lib/rosterProfiles.ts
           grep -q 'bootstrapRosterProfiles' src/App.tsx
           grep -q 'autoCaptainInventory' src/lib/optimizer.ts
           grep -q 'roster-account-bar' src/styles.css
           grep -q 'ownedCostumeIds' src/App.tsx
+          grep -q 'fixedLeader: null' src/App.tsx
           echo 'Core feature markers verified.'
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -53,7 +57,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Build verification
+      - name: Install and build
         shell: bash
         env:
           VITE_BASE: /holodream123/
@@ -71,7 +75,16 @@ jobs:
           rm -f .github/workflows/d4c-core-upgrade.yml
           git config user.name 'D4C1207'
           git config user.email 's1113708@mail.yzu.edu.tw'
-          git add src/App.tsx src/lib/optimizer.ts src/lib/rosterProfiles.ts src/styles.css .d4c-patch .github/workflows/d4c-core-upgrade.yml
+          git add -A
           git diff --cached --stat
           git commit -m 'Add multi-account inventory and automatic team optimization'
           git push origin HEAD:main
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
