@@ -28,7 +28,7 @@ export function teamDecisionKey(ev: TeamEvaluation): string {
 }
 
 /**
- * D4C 實戰指數（非官方估算）：
+ * SC（非官方估算）：
  * (加成後三圍 + 分數支援加權值) × (1 + 全曲平均有效 Score UP / 100)
  *
  * Unlike PR, this uses a fixed formula and never normalizes against the current

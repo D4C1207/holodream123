@@ -1316,7 +1316,7 @@ export default function App() {
                         <span>{favorite.powerRating?.toFixed(0) ?? "—"}</span>
                       </div>
                       <div className="favorite-metric">
-                        <strong>D4C</strong>
+                        <strong>SC</strong>
                         <span>{favorite.d4cIndex?.toLocaleString() ?? "—"}</span>
                       </div>
                       <div className="favorite-metric">
@@ -1392,7 +1392,7 @@ export default function App() {
               <strong className="account-dashboard-value">{activeRosterProfile?.name ?? rosterUi.account}</strong>
               <span className="account-dashboard-sub">
                 {lastRosterScores[activeRosterProfileId]
-                  ? `PR ${lastRosterScores[activeRosterProfileId].pr ?? "—"} · D4C ${lastRosterScores[activeRosterProfileId].d4cIndex.toLocaleString()}`
+                  ? `PR ${lastRosterScores[activeRosterProfileId].pr ?? "—"} · SC ${lastRosterScores[activeRosterProfileId].d4cIndex.toLocaleString()}`
                   : locale === "ja" ? "まだ編成計算していません" : locale === "en" ? "No saved calculation yet" : "尚未記錄最佳計算"}
               </span>
             </div>
@@ -1460,7 +1460,7 @@ export default function App() {
             <summary>{locale === "ja" ? "計算ルールを見る" : locale === "en" ? "How the calculation works" : "計算規則與分數說明"}</summary>
             <div className="rule-guide-body">
               <p><strong>PR：</strong>{locale === "ja" ? "このアカウントの今回の候補内での相対評価。" : locale === "en" ? "Relative score inside this account's current candidate search." : "只比較目前帳號這次搜尋中的候選隊伍，是相對分數。"}</p>
-              <p><strong>D4C：</strong>{locale === "ja" ? "固定式の実戦指数。(総合パラメータ + スコアサポート加重値) × (1 + 全曲平均Score UP/100)。同じ曲長ならアカウント間で比較できます。" : locale === "en" ? "Fixed battle index: (buffed stats + score-support equivalent) × (1 + full-song Avg Score UP/100). Comparable across accounts under the same song length." : "固定公式的實戰指數：（加成後三圍 + 分數支援加權值）×（1 + 全曲平均有效 Score UP / 100）；同曲長時可跨帳號比較。"}</p>
+              <p><strong>SC：</strong>{locale === "ja" ? "固定式の実戦指数。(総合パラメータ + スコアサポート加重値) × (1 + 全曲平均Score UP/100)。同じ曲長ならアカウント間で比較できます。" : locale === "en" ? "Fixed battle index: (buffed stats + score-support equivalent) × (1 + full-song Avg Score UP/100). Comparable across accounts under the same song length." : "固定公式的實戰指數：（加成後三圍 + 分數支援加權值）×（1 + 全曲平均有效 Score UP / 100）；同曲長時可跨帳號比較。"}</p>
               <p><strong>{locale === "ja" ? "隊長" : locale === "en" ? "Captain" : "隊長"}：</strong>{locale === "ja" ? "主に衣装スキルを決めます。現有メンバー編成ではシステムが自動で隊長と衣装を試します。" : locale === "en" ? "Mainly determines the costume skill; owned-roster mode automatically tests captain and costume choices." : "主要決定衣裝技能；現有隊員模式會自動測試可用隊長與衣裝，不用先指定。"}</p>
               <p><strong>{locale === "ja" ? "カード→衣装" : locale === "en" ? "Card → costume" : "卡面 → 衣裝"}：</strong>{locale === "ja" ? "選んだカードに対応する衣装だけを所持扱いにします。複数カードのメンバーは下のカード選択が基準です。" : locale === "en" ? "Only costumes linked to selected owned cards count as available; multi-card members use the card picker below." : "持有哪張卡就視為持有該卡對應衣裝；同角色多卡時完全以下方「★5 持有卡面」勾選為準。"}</p>
             </div>
@@ -1546,10 +1546,10 @@ export default function App() {
             <h3>{locale === "ja" ? "もしこのカードを持っていたら？" : locale === "en" ? "What if I owned this card?" : "如果我有這張卡呢？"}</h3>
             <p className="panel-note">
               {locale === "ja"
-                ? "バッグを変更せず、未所持カードを1枚だけ仮追加して再計算します。別検索同士なのでPRではなくD4C実戦指数で前後比較します。"
+                ? "バッグを変更せず、未所持カードを1枚だけ仮追加して再計算します。別検索同士なのでPRではなくSCで前後比較します。"
                 : locale === "en"
-                  ? "Temporarily add one unowned card without changing your inventory. Because these are separate searches, the before/after comparison uses the fixed D4C Battle Index rather than PR."
-                  : "不修改背包，暫時假設多持有一張卡重新計算。因為前後是兩次不同搜尋，所以用固定公式的 D4C 實戰指數比較，不拿 PR 硬比。"}
+                  ? "Temporarily add one unowned card without changing your inventory. Because these are separate searches, the before/after comparison uses SC rather than PR."
+                  : "不修改背包，暫時假設多持有一張卡重新計算。因為前後是兩次不同搜尋，所以用固定公式的 SC 比較，不拿 PR 硬比。"}
             </p>
             <div className="simulator-controls">
               <select value={simCardId} onChange={(e) => { setSimCardId(e.target.value); setSimulation(null); }}>
@@ -1575,7 +1575,7 @@ export default function App() {
               return (
                 <div className="simulator-result">
                   <div className="simulator-metric"><span>{locale === "ja" ? "仮カード" : locale === "en" ? "Hypothetical card" : "假設卡片"}</span><strong>{card ? listName(card.member, unitsOf(card.member), locale) : simulation.cardId}</strong></div>
-                  <div className="simulator-metric"><span>D4C</span><strong>{beforeD4c == null ? "—" : beforeD4c.toLocaleString()} → {afterD4c == null ? "—" : afterD4c.toLocaleString()}</strong></div>
+                  <div className="simulator-metric"><span>SC</span><strong>{beforeD4c == null ? "—" : beforeD4c.toLocaleString()} → {afterD4c == null ? "—" : afterD4c.toLocaleString()}</strong></div>
                   <div className="simulator-metric"><span>{locale === "ja" ? "総合パラメータ差" : locale === "en" ? "Buffed stats Δ" : "三圍差"}</span><strong>{simulation.before && simulation.after ? signed(simulation.after.effectiveStatTotal - simulation.before.effectiveStatTotal) : "—"}</strong></div>
                   <div className="simulator-metric"><span>Avg UP / Coverage</span><strong>{simulation.before && simulation.after ? `${signed(simulation.after.avgScoreUp - simulation.before.avgScoreUp, 1)}% / ${signed((simulation.after.coverage - simulation.before.coverage) * 100, 1)}pt` : "—"}</strong></div>
                   <p className="simulator-lineup-change">
@@ -1922,7 +1922,7 @@ export default function App() {
                     <table className="compare-table">
                       <thead><tr><th>{locale === "ja" ? "指標" : locale === "en" ? "Metric" : "指標"}</th><th>A</th><th>B</th><th>Δ A-B</th></tr></thead>
                       <tbody>
-                        <tr><td>D4C</td><td>{d4cBattleIndex(compareA).toLocaleString()}</td><td>{d4cBattleIndex(compareB).toLocaleString()}</td><td className={`compare-diff ${compareDiff.d4cIndex >= 0 ? "good" : "bad"}`}>{signed(compareDiff.d4cIndex)}</td></tr>
+                        <tr><td>SC</td><td>{d4cBattleIndex(compareA).toLocaleString()}</td><td>{d4cBattleIndex(compareB).toLocaleString()}</td><td className={`compare-diff ${compareDiff.d4cIndex >= 0 ? "good" : "bad"}`}>{signed(compareDiff.d4cIndex)}</td></tr>
                         <tr><td>PR</td><td>{compareA.powerRating?.toFixed(0) ?? "—"}</td><td>{compareB.powerRating?.toFixed(0) ?? "—"}</td><td>{compareA.powerRating != null && compareB.powerRating != null ? signed(compareA.powerRating - compareB.powerRating) : "—"}</td></tr>
                         <tr><td>{favoriteUi.stats}</td><td>{compareA.effectiveStatTotal.toLocaleString()}</td><td>{compareB.effectiveStatTotal.toLocaleString()}</td><td className={`compare-diff ${compareDiff.effectiveStats >= 0 ? "good" : "bad"}`}>{signed(compareDiff.effectiveStats)}</td></tr>
                         <tr><td>{favoriteUi.coverage}</td><td>{(compareA.coverage * 100).toFixed(1)}%</td><td>{(compareB.coverage * 100).toFixed(1)}%</td><td className={`compare-diff ${compareDiff.coveragePctPoint >= 0 ? "good" : "bad"}`}>{signed(compareDiff.coveragePctPoint, 1)}pt</td></tr>
@@ -2021,7 +2021,7 @@ export default function App() {
               </div>
               <div className="decision-score-strip">
                 <div className="decision-score-card">
-                  <span className="label">D4C · {locale === "ja" ? "実戦指数" : locale === "en" ? "Battle Index" : "實戰指數"}</span>
+                  <span className="label">SC</span>
                   <strong>{d4cBattleIndex(detailEv).toLocaleString()}</strong>
                   <small>{locale === "ja" ? "固定式・同じ曲長ならアカウント間比較可" : locale === "en" ? "Fixed formula · comparable across accounts at the same song length" : "固定公式 · 同曲長可跨帳號比較"}</small>
                 </div>
