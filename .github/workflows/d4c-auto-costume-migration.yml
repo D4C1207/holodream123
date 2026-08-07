@@ -21,7 +21,21 @@ jobs:
           fetch-depth: 0
 
       - name: Apply roster card-to-costume logic
-        run: python3 .github/scripts/auto_costume_migration.py
+        run: |
+          python3 .github/scripts/auto_costume_migration.py
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/App.tsx')
+          text = path.read_text(encoding='utf-8')
+          old = '''function defaultRosterCardIds(member: string): string[] {
+  return rosterCardsForMember(member).map((c) => c.id);
+}
+
+'''
+          if text.count(old) != 1:
+              raise SystemExit('obsolete defaultRosterCardIds helper not found exactly once')
+          path.write_text(text.replace(old, '', 1), encoding='utf-8')
+          PY
 
       - name: Verify source changes
         shell: bash
@@ -29,6 +43,10 @@ jobs:
           grep -q 'rosterOwnedCostumeIdsForOptimize' src/App.tsx
           grep -q 'cards.length === 1 ? \[cards\[0\].id\] : \[\]' src/App.tsx
           grep -q 'out\[member\] = normalized' src/lib/rosterProfiles.ts
+          if grep -q 'defaultRosterCardIds' src/App.tsx; then
+            echo 'Obsolete roster helper still exists' >&2
+            exit 1
+          fi
           if grep -q 'className="roster-costume-pick"' src/App.tsx; then
             echo 'Manual costume picker still exists' >&2
             exit 1
