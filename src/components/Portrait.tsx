@@ -5,9 +5,14 @@ import portraits from "../data/portraits.json";
 const CUT = portraitsCut as Record<string, string>;
 const RAW = portraits as Record<string, string>;
 
+const PORTRAIT_MEMBER_ALIASES: Record<string, string> = {
+  星街彗星: "星街すいせい",
+};
+
 export function portraitUrl(member: string, preferCut = true): string | undefined {
-  if (preferCut && CUT[member]) return withBase(CUT[member]);
-  return withBase(RAW[member]);
+  const key = PORTRAIT_MEMBER_ALIASES[member] ?? member;
+  if (preferCut && CUT[key]) return withBase(CUT[key]);
+  return withBase(RAW[key]);
 }
 
 type Props = {
