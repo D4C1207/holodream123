@@ -1,0 +1,85 @@
+name: D4C 功能升級
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/d4c-code-upgrade.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: d4c-code-upgrade
+  cancel-in-progress: false
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 取得並套用功能修改
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64
+          import re
+          import urllib.request
+
+          url = "https://raw.githubusercontent.com/D4C1207/holodream/main/holodream-upgrade.yml"
+          text = urllib.request.urlopen(url, timeout=30).read().decode("utf-8")
+          matches = re.findall(r"echo '([A-Za-z0-9+/=]+)' \\| base64 -d > (/tmp/[^\n]+)", text)
+          payload = None
+          for encoded, path in matches:
+              if "holodream-improvements.patch" in path:
+                  payload = encoded
+                  break
+          if payload is None:
+              raise SystemExit("找不到 Holodream 功能 patch")
+          with open("/tmp/holodream-improvements.patch", "wb") as f:
+              f.write(base64.b64decode(payload))
+          print("patch bytes ready")
+          PY
+
+          git apply --check /tmp/holodream-improvements.patch
+          git apply /tmp/holodream-improvements.patch
+
+          test -f src/lib/rosterProfiles.ts
+          grep -q 'bootstrapRosterProfiles' src/App.tsx
+          grep -q 'autoCaptainInventory' src/lib/optimizer.ts
+          grep -q 'roster-account-bar' src/styles.css
+          echo "D4C 功能修改已實際套用並驗證"
+
+      - name: Build 驗證
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: npm build
+        shell: bash
+        env:
+          VITE_BASE: /holodream123/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: 提交功能修改
+        shell: bash
+        run: |
+          git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
+          rm -f .github/workflows/d4c-code-upgrade.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx src/lib/optimizer.ts src/lib/rosterProfiles.ts src/styles.css .github/workflows/d4c-code-upgrade.yml
+          git diff --cached --stat
+          git commit -m "Add D4C multi-account roster optimizer"
+          git push origin HEAD:main
