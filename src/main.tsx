@@ -5,6 +5,7 @@ import { LocaleProvider } from "./i18n/LocaleContext";
 import "./styles.css";
 import "./d4c.css";
 import "./favorites.css";
+import "./d4c-layout-v2.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
