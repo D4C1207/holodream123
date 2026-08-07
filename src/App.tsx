@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import gameData from "./data/gameData.json";
 import { CardArt } from "./components/CardArt";
-import { CommentBoard, closeGuestbookHash, guestbookHashActive, openGuestbookHash } from "./components/CommentBoard";
 import { CardFilterToolbar, CardGroupBrowser } from "./components/CardBrowser";
 import { MemberName } from "./components/MemberName";
 import { Portrait } from "./components/Portrait";
@@ -137,27 +136,6 @@ export default function App() {
   const [resultTrack, setResultTrack] = useState<ResultTrack>("overall");
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [viewingPrBaseline, setViewingPrBaseline] = useState(false);
-  const [commentBoardOpen, setCommentBoardOpen] = useState(() => guestbookHashActive());
-
-  useEffect(() => {
-    const onNavigate = () => setCommentBoardOpen(guestbookHashActive());
-    window.addEventListener("popstate", onNavigate);
-    window.addEventListener("hashchange", onNavigate);
-    return () => {
-      window.removeEventListener("popstate", onNavigate);
-      window.removeEventListener("hashchange", onNavigate);
-    };
-  }, []);
-
-  function openCommentBoard() {
-    setCommentBoardOpen(true);
-    openGuestbookHash();
-  }
-
-  function closeCommentBoard() {
-    setCommentBoardOpen(false);
-    closeGuestbookHash();
-  }
   const [busy, setBusy] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [cardsCompact, setCardsCompact] = useState(false);
@@ -755,18 +733,9 @@ export default function App() {
           <div className="hero-mascot">
             <Portrait member="常闇トワ" size="lg" className="hero-portrait" />
             <span className="hero-mascot-caption">常闇トワ</span>
-            <button
-              type="button"
-              className="hero-comment-btn"
-              onClick={openCommentBoard}
-            >
-              {t.commentBoardTitle}
-            </button>
           </div>
         </div>
       </header>
-
-      <CommentBoard open={commentBoardOpen} onClose={closeCommentBoard} />
 
       {theme === "gallery" && (
         <section className="panel gallery-panel">
