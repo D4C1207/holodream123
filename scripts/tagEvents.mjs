@@ -9,14 +9,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataPath = path.join(__dirname, "../src/data/gameData.json");
 
 /** Current live event name used as an extra card category. */
-export const CURRENT_EVENT = "ハロー！Brand New Summer！";
+export const CURRENT_EVENT = "シンクロする夏のスパークル";
 
 const EVENT_CARD_NAMES = new Set([
-  "Energeticスプラッシュ！",
-  "sparks sunset",
-  "波まとうゆるふわKnight",
-  "真夏のもふもふフロートタイム",
-  "潮風にのせる、笑顔のハーモニー",
+  "ビーチで弾ける、光彩ショット！",
+  "夏に一閃！水鉄砲のアルペジオ",
 ]);
 
 const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));

@@ -135,7 +135,7 @@ export interface TeamEvaluation {
   }>;
   typeCounts: Record<Attr, number>;
   unitCounts: Record<string, number>;
-  /** Composite PR 0–1000 from stats / coverage / avgScoreUp (set on overall ranking). */
+  /** Composite PR from stats / coverage / avgScoreUp; baseline team = 9999 max (overall ranking). */
   powerRating?: number;
   /**
    * Active Score UP skills that share the same timing/potency

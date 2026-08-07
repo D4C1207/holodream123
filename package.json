@@ -9,14 +9,17 @@
     "preview": "vite preview",
     "generate-data": "node scripts/generateData.mjs",
     "add-swimsuits": "node scripts/addSwimsuits.mjs",
+    "add-summer2026": "node scripts/addSummer2026.mjs",
     "import-excel": "node scripts/importExcel.mjs",
     "tag-events": "node scripts/tagEvents.mjs",
     "download-portraits": "node scripts/downloadPortraits.mjs",
     "download-cards": "node scripts/downloadCardArts.mjs",
+    "download-gamerch-cards": "node scripts/downloadGamerchCards.mjs",
     "fix-missing-cards": "node scripts/fixMissingCards.mjs",
     "merge-stats": "node scripts/mergeStats.mjs",
     "cut-portraits": "node scripts/cutPortraitBg.mjs",
-    "fix-game-data": "node scripts/fixGameData.mjs"
+    "fix-game-data": "node scripts/fixGameData.mjs",
+    "precompute-pr": "npx tsx scripts/precomputePrBaselines.ts"
   },
   "dependencies": {
     "react": "^19.1.0",

@@ -20,6 +20,17 @@ export type Messages = {
   themeGallerySub: string;
   themeOptimize: string;
   themeOptimizeSub: string;
+  themeRoster: string;
+  themeRosterSub: string;
+  rosterTitle: (n: number) => string;
+  rosterNote: string;
+  rosterCardPickTitle: string;
+  rosterCardPickNote: string;
+  rosterNeedFive: string;
+  rosterClear: string;
+  alertRosterMin: string;
+  alertRosterCardMin: string;
+  fabRosterRun: string;
   galleryTitle: string;
   dataNoticeBefore: string;
   dataNoticeStrong: string;
@@ -45,6 +56,8 @@ export type Messages = {
   conditionNone: string;
   wantedTitle: (n: number) => string;
   wantedWithLeader: (n: number) => string;
+  wantedLocked: (n: number) => string;
+  captainOffTeam: string;
   wantedNote: string;
   clearWanted: string;
   removeWantedAria: (name: string) => string;
@@ -55,6 +68,10 @@ export type Messages = {
   trackOverall: string;
   trackOverallDesc: string;
   prBaselineNote: string;
+  prBaselineBtn: string;
+  prBaselineBtnTitle: string;
+  prBaselineBtnUnavailable: string;
+  prBaselineViewBanner: string;
   allowDupSkills: string;
   allowDupSkillsHint: string;
   skillDupWarn: string;
@@ -167,12 +184,24 @@ const zh: Messages = {
   themeGallerySub: "依期數瀏覽卡面",
   themeOptimize: "最強編隊",
   themeOptimizeSub: "隊長＋想要隊員優化",
+  themeRoster: "現有隊員編隊",
+  themeRosterSub: "從已擁有★5配對",
+  rosterTitle: (n) => `① 已擁有隊員（${n} 人）`,
+  rosterNote:
+    "點選你持有的★5角色（含活動卡）。至少 5 人後選隊長；有多張★5者可在下方勾選持有卡面。PR 仍與最強編隊同基準（9999）。",
+  rosterCardPickTitle: "★5 持有卡面",
+  rosterCardPickNote: "勾選你持有的★5卡面（可多選）；編隊時會從中自動挑最適合的組合。",
+  rosterNeedFive: "至少選 5 人",
+  rosterClear: "清空已選",
+  alertRosterMin: "請至少選擇 5 位已擁有隊員。",
+  alertRosterCardMin: "每位成員至少需勾選一張★5卡面。",
+  fabRosterRun: "從現有隊員配對",
   galleryTitle: "角色一覽",
   dataNoticeBefore: "數值與技能皆為",
   dataNoticeStrong: "滿綻放・滿等",
   dataNoticeAfter: "狀態。部分 ★3／★4 可能尚未收錄三圍。",
   tagline:
-    "先選隊長，再指定想要隊員（最多 5）。指定的角色必定入隊，其餘由系統補齊——打造 chill 又狠的最強隊伍。",
+    "隊長僅決定衣裝技能，編成五員不必包含隊長。指定隊員固定入隊，其餘由系統補齊。",
   priority1: "隊長衣裝技能",
   priority2: "被動全部滿足",
   priority3: (sec) => `有效 Score UP / 覆蓋率（${sec}s）`,
@@ -189,13 +218,16 @@ const zh: Messages = {
   noCostumeData: "此成員尚無衣裝技能資料。",
   conditionLabel: "發動條件",
   conditionUnitHint: (list, min) =>
-    `隊長本人也計入人數。可湊條件的成員：${list || "（無）"}。目標至少 ${min} 人。`,
+    `編成五員中，${list || "（無）"} 至少 ${min} 人（隊長本人不計入也可）。`,
   conditionTypeHint: (list, min) =>
     `對應屬性卡成員：${list || "（無）"}。目標至少 ${min} 人。`,
   conditionNone: "此衣裝無人數條件，系統會依被動與技能覆蓋率優化隊員。",
   wantedTitle: (n) => `② 想要的隊員（${n} / 5）`,
   wantedWithLeader: (n) => `｜含隊長共鎖定 ${n} 人`,
-  wantedNote: "點選卡面加入想要隊員（最多 5）。這些角色會固定進入編成，其餘空位由最佳化補齊。",
+  wantedLocked: (n) => `｜已鎖定 ${n} 人`,
+  captainOffTeam: "（不在編成內）",
+  wantedNote:
+    "點選卡面加入想要隊員（最多 5）。隊長只決定衣裝，不必佔編成名額；鎖定隊員固定入隊，其餘空位由最佳化補齊。",
   clearWanted: "清空想要隊員",
   removeWantedAria: (name) => `取消 ${name}`,
   resultsTitle: "③ 最佳編成結果",
@@ -206,7 +238,11 @@ const zh: Messages = {
   trackOverallDesc:
     "衣裝＋被動前提下，三圍／覆蓋／平均 UP 相對「同衣裝無指定隊員最強隊」合成 PR 前 8",
   prBaselineNote:
-    "PR 以該隊長衣裝、未指定想要隊員時的最強隊伍（需滿足衣裝＋全員被動）為 1000 分基準。",
+    "PR 以選定衣裝、未指定隊員時的最強編成（★5 常駐＋活動卡）為 9999 分基準，其餘編成以此相對評分。",
+  prBaselineBtn: "PR 9999",
+  prBaselineBtnTitle: "查看同衣裝、無指定隊員時的最強編隊（PR 基準）",
+  prBaselineBtnUnavailable: "需先選定隊長衣裝並計算編隊",
+  prBaselineViewBanner: "PR 9999 基準編隊 — 同衣裝、無指定隊員、全池 ★5＋活動最強",
   allowDupSkills: "允許主動技能重複",
   allowDupSkillsHint: "關閉後排除主動 Score UP 時程／倍率相同的編成",
   skillDupWarn: "主動技能重複",
@@ -320,12 +356,24 @@ const en: Messages = {
   themeGallerySub: "Browse by generation",
   themeOptimize: "Best Team",
   themeOptimizeSub: "Captain + locked picks",
+  themeRoster: "Owned Roster",
+  themeRosterSub: "Build from your ★5",
+  rosterTitle: (n) => `① Owned members (${n})`,
+  rosterNote:
+    "Select owned ★5 members (incl. event). Need 5+, then captain; check owned cards below if they have multiple ★5s. PR uses Best Team 9999 baseline.",
+  rosterCardPickTitle: "★5 owned cards",
+  rosterCardPickNote: "Check every ★5 you own (multi-select). The optimizer picks the best mix for each team.",
+  rosterNeedFive: "Need at least 5",
+  rosterClear: "Clear selection",
+  alertRosterMin: "Select at least 5 owned members.",
+  alertRosterCardMin: "Each member needs at least one ★5 card selected.",
+  fabRosterRun: "Match from roster",
   galleryTitle: "Card Gallery",
   dataNoticeBefore: "All stats and skills shown are at ",
   dataNoticeStrong: "max bloom / max level",
   dataNoticeAfter: ". Some ★3 / ★4 cards may not have stats yet.",
   tagline:
-    "Pick a captain, then lock up to 5 members you want in. Locked members always make the team; the rest are filled to build a strong lineup.",
+    "Pick a captain for the costume skill. The 5 lineup members need not include the captain—lock up to 5 wanted picks; the rest are filled automatically.",
   priority1: "Captain costume skill",
   priority2: "All passives met",
   priority3: (sec) => `Effective Score UP / coverage (${sec}s)`,
@@ -342,15 +390,17 @@ const en: Messages = {
   noCostumeData: "No costume skill data for this member yet.",
   conditionLabel: "Activation condition",
   conditionUnitHint: (list, min) =>
-    `The captain counts toward the total. Eligible members: ${list || "(none)"}. Need at least ${min}.`,
+    `Among the 5 members, need at least ${min} from: ${list || "(none)"} (captain need not be included).`,
   conditionTypeHint: (list, min) =>
     `Members with matching attribute cards: ${list || "(none)"}. Need at least ${min}.`,
   conditionNone:
     "No member-count condition. Teammates are optimized for passives and skill coverage.",
   wantedTitle: (n) => `② Wanted members (${n} / 5)`,
   wantedWithLeader: (n) => `｜ ${n} locked including captain`,
+  wantedLocked: (n) => `｜ ${n} locked`,
+  captainOffTeam: " (not in lineup)",
   wantedNote:
-    "Tap a card to lock that member (max 5). Locked members stay in the team; empty slots are optimized.",
+    "Tap a card to lock a member (max 5). Captain sets the costume only; locked members stay in the team; other slots are optimized.",
   clearWanted: "Clear wanted",
   removeWantedAria: (name) => `Remove ${name}`,
   resultsTitle: "③ Best team results",
@@ -362,7 +412,12 @@ const en: Messages = {
   trackOverallDesc:
     "Costume + passives first; PR from stats / coverage / avg UP vs unconstrained best under this costume — top 8",
   prBaselineNote:
-    "PR 1000 = best team for this captain costume with no locked wanted members (costume + all passives required).",
+    "PR 9999 = strongest ★5 team for this captain costume with no locked members (permanent + event). Other teams scale relative to it.",
+  prBaselineBtn: "PR 9999",
+  prBaselineBtnTitle: "View the unconstrained strongest team for this costume (PR baseline)",
+  prBaselineBtnUnavailable: "Choose captain costume and run optimization first",
+  prBaselineViewBanner:
+    "PR 9999 baseline — strongest team for this costume with no locked members (full ★5 + event pool)",
   allowDupSkills: "Allow duplicate active skills",
   allowDupSkillsHint: "Off excludes teams whose active Score UP timing/potency match",
   skillDupWarn: "Duplicate active skills",
@@ -478,12 +533,24 @@ const ja: Messages = {
   themeGallerySub: "期生ごとにカードを見る",
   themeOptimize: "最強編成",
   themeOptimizeSub: "キャプテン＋固定メンバー最適化",
+  themeRoster: "所持メン編成",
+  themeRosterSub: "所持★5から編成",
+  rosterTitle: (n) => `① 所持メンバー（${n}人）`,
+  rosterNote:
+    "所持の★5メンバー（イベント含む）を選択。5人以上＋キャプテン。★5が複数いる場合は下で所持分をチェック。PRは最強編成と同じ9999基準。",
+  rosterCardPickTitle: "★5所持カード",
+  rosterCardPickNote: "所持している★5をすべてチェック（複数可）。編成時に最適な組み合わせを自動選択します。",
+  rosterNeedFive: "5人以上必要",
+  rosterClear: "選択をクリア",
+  alertRosterMin: "所持メンバーを5人以上選んでください。",
+  alertRosterCardMin: "各メンバーは★5を1枚以上選んでください。",
+  fabRosterRun: "所持から編成",
   galleryTitle: "キャラ一覧",
   dataNoticeBefore: "表示している数値・スキルはすべて",
   dataNoticeStrong: "満開花・最大レベル",
   dataNoticeAfter: "です。一部の★3／★4はステータス未収録の場合があります。",
   tagline:
-    "まずキャプテンを選び、入れたいメンバーを最大5人まで指定します。指定メンバーは必ず編成に入り、空き枠を自動で埋めます。",
+    "キャプテンは衣装スキル用。編成5人にキャプテン本人は不要。入れたいメンバーを最大5人まで固定し、残りは自動で埋めます。",
   priority1: "キャプテン衣装スキル",
   priority2: "パッシブ全達成",
   priority3: (sec) => `有効 Score UP / カバー率（${sec}秒）`,
@@ -500,15 +567,17 @@ const ja: Messages = {
   noCostumeData: "このメンバーの衣装スキルデータはまだありません。",
   conditionLabel: "発動条件",
   conditionUnitHint: (list, min) =>
-    `キャプテン本人も人数に含みます。条件を満たせるメンバー：${list || "（なし）"}。必要人数 ${min} 以上。`,
+    `編成5人のうち、${list || "（なし）"} から ${min} 人以上（キャプテン本人は含めなくて可）。`,
   conditionTypeHint: (list, min) =>
     `該当属性カードを持つメンバー：${list || "（なし）"}。必要人数 ${min} 以上。`,
   conditionNone:
     "人数条件はありません。パッシブとスキルカバー率を優先してメンバーを最適化します。",
   wantedTitle: (n) => `② 入れたいメンバー（${n} / 5）`,
   wantedWithLeader: (n) => `｜キャプテン込みで固定 ${n} 人`,
+  wantedLocked: (n) => `｜固定 ${n} 人`,
+  captainOffTeam: "（編成外）",
   wantedNote:
-    "カードをタップして固定メンバーに追加（最大5）。固定メンバーは必ず入り、空き枠を最適化します。",
+    "カードをタップして固定（最大5）。キャプテンは衣装のみで編成枠を使いません。固定メンバーは必ず入り、残りを最適化します。",
   clearWanted: "固定をクリア",
   removeWantedAria: (name) => `${name} を外す`,
   resultsTitle: "③ 最適編成結果",
@@ -520,7 +589,12 @@ const ja: Messages = {
   trackOverallDesc:
     "衣装＋パッシブ優先。同衣装・指名なし最強編成を基準にステ／カバー／平均UPからPR上位8",
   prBaselineNote:
-    "PR1000＝このキャプテン衣装で、入れたいメンバー未指定時の最強編成（衣装＋パッシブ全達成）。",
+    "PR9999＝この衣装・指名なし最強編成（★5常駐＋イベントカード）。他編成はこれを基準に相対評価。",
+  prBaselineBtn: "PR 9999",
+  prBaselineBtnTitle: "同衣装・指名なし最強編成（PR基準）を表示",
+  prBaselineBtnUnavailable: "先にキャプテン衣装を選び編成を計算してください",
+  prBaselineViewBanner:
+    "PR9999基準編成 — 同衣装・指名なし・★5＋イベント全池最強",
   allowDupSkills: "同一アクティブスキルを許可",
   allowDupSkillsHint: "OFFにすると Score UP の間隔・倍率などが同じ編成を除外",
   skillDupWarn: "アクティブスキル重複",

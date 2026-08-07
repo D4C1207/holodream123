@@ -158,6 +158,8 @@ type FilterBarProps = {
   onClearUnit: () => void;
   onToggleUnit: (u: string) => void;
   extraActions?: ReactNode;
+  /** Hide ★ rarity toggles (optimize tab uses fixed ★5 + event pool). */
+  showRarityFilter?: boolean;
 };
 
 export function CardFilterToolbar({
@@ -179,6 +181,7 @@ export function CardFilterToolbar({
   onClearUnit,
   onToggleUnit,
   extraActions,
+  showRarityFilter = true,
 }: FilterBarProps) {
   const { t, attrLabel } = useI18n();
 
@@ -215,31 +218,33 @@ export function CardFilterToolbar({
 
       {filterOpen && (
         <div className="filter-panel">
-          <div className="filter-group">
-            <div className="filter-label">
-              {t.rarity}
-              <span className="filter-hint">{t.multiSelect}</span>
-            </div>
-            <div className="filters">
-              <button
-                type="button"
-                className={`filter-btn ${rarityFilters.length === 0 ? "active" : ""}`}
-                onClick={onClearRarity}
-              >
-                {t.all}
-              </button>
-              {([5, 4, 3] as const).map((r) => (
+          {showRarityFilter && (
+            <div className="filter-group">
+              <div className="filter-label">
+                {t.rarity}
+                <span className="filter-hint">{t.multiSelect}</span>
+              </div>
+              <div className="filters">
                 <button
-                  key={r}
                   type="button"
-                  className={`filter-btn ${rarityFilters.includes(r) ? "active" : ""}`}
-                  onClick={() => onToggleRarity(r)}
+                  className={`filter-btn ${rarityFilters.length === 0 ? "active" : ""}`}
+                  onClick={onClearRarity}
                 >
-                  ★{r}
+                  {t.all}
                 </button>
-              ))}
+                {([5, 4, 3] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    className={`filter-btn ${rarityFilters.includes(r) ? "active" : ""}`}
+                    onClick={() => onToggleRarity(r)}
+                  >
+                    ★{r}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div className="filter-group">
             <div className="filter-label">
               {t.attribute}
