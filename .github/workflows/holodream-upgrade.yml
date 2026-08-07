@@ -1,0 +1,75 @@
+name: Holodream 一鍵升級
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: holodream-oneclick-upgrade
+  cancel-in-progress: false
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下載目前專案
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 取得升級修改器
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, re, urllib.request
+          url = 'https://raw.githubusercontent.com/D4C1207/holodream/main/holodream-upgrade.yml'
+          text = urllib.request.urlopen(url, timeout=30).read().decode('utf-8')
+          matches = re.findall(r"echo '([A-Za-z0-9+/=]+)' \\| base64 -d > (/tmp/[^\n]+)", text)
+          if len(matches) < 2:
+              raise SystemExit('找不到升級內容，請確認來源檔仍存在。')
+          for payload, path in matches[:2]:
+              with open(path.strip(), 'wb') as f:
+                  f.write(base64.b64decode(payload))
+          print('升級修改器準備完成')
+          PY
+
+      - name: 套用多帳號、自動隊長與效能優化
+        shell: bash
+        run: |
+          python3 /tmp/apply_holodream_improvements.py --repo . --patch /tmp/holodream-improvements.patch
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安裝套件並檢查網站
+        shell: bash
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_BASE: /holodream123/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: 移除一次性升級工作流
+        shell: bash
+        run: rm -f .github/workflows/holodream-upgrade.yml
+
+      - name: 提交修改
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "沒有需要提交的變更。"
+            exit 0
+          fi
+          git commit -m "Add multi-account inventory and automatic team optimization"
+          git push origin HEAD:main
