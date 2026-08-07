@@ -1,0 +1,142 @@
+.favorites-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.favorite-count {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(99, 238, 226, 0.28);
+  border-radius: 999px;
+  color: #dffcff;
+  background: rgba(99, 238, 226, 0.08);
+  font-weight: 700;
+}
+
+.favorite-pr-note {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(82, 167, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(82, 167, 255, 0.07);
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.favorite-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(99, 238, 226, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(8, 24, 37, 0.9), rgba(11, 13, 28, 0.86));
+}
+
+.favorite-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.favorite-account-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border: 1px solid rgba(140, 121, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(140, 121, 255, 0.12);
+  color: #ddd8ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.favorite-date {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.favorite-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.favorite-metric {
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.favorite-metric strong,
+.favorite-metric span {
+  display: block;
+}
+
+.favorite-metric strong {
+  color: #eafcff;
+  font-size: 0.74rem;
+}
+
+.favorite-metric span {
+  margin-top: 3px;
+  color: #bcecf1;
+  font-size: 0.9rem;
+}
+
+.favorite-costume {
+  margin: 0;
+  color: #cddce8;
+  font-size: 0.84rem;
+}
+
+.favorite-team {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.favorite-member {
+  min-width: 0;
+  text-align: center;
+}
+
+.favorite-member .card-art {
+  width: 100%;
+}
+
+.favorite-member-name {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #dce9f3;
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 12px;
+}
+
+@media (max-width: 720px) {
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .favorite-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
