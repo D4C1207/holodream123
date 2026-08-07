@@ -27,7 +27,7 @@ jobs:
       - name: Rebuild and verify patch
         shell: bash
         run: |
-          cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13a .d4c-patch/13b .d4c-patch/14 | base64 -d > /tmp/d4c.patch
+          cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13a .d4c-patch/13b1 .d4c-patch/13b2 .d4c-patch/14 | base64 -d > /tmp/d4c.patch
           echo "5122831f0c724fabd08149bc2af355f8567066f47af5e210623946012784a5f9  /tmp/d4c.patch" | sha256sum -c -
           git apply --check /tmp/d4c.patch
           git apply /tmp/d4c.patch
