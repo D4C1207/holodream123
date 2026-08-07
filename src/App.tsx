@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import gameData from "./data/gameData.json";
 import { CardArt } from "./components/CardArt";
+import { CommentBoard } from "./components/CommentBoard";
 import { CardFilterToolbar, CardGroupBrowser } from "./components/CardBrowser";
 import { MemberName } from "./components/MemberName";
 import { Portrait } from "./components/Portrait";
@@ -1534,6 +1535,8 @@ export default function App() {
       </button>
         </>
       )}
+
+      <CommentBoard />
 
       <footer className="site-footer">
         <span>{t.footer}</span>
