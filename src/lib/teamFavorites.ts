@@ -7,6 +7,7 @@ export type TeamFavorite = {
   costumeId: string;
   leaderIndex: number;
   powerRating: number | null;
+  d4cIndex: number | null;
   effectiveStatTotal: number;
   coverage: number;
   avgScoreUp: number;
@@ -48,6 +49,7 @@ function parseFavorite(value: unknown): TeamFavorite | null {
     typeof item.costumeId === "string" &&
     typeof item.leaderIndex === "number" &&
     (item.powerRating === null || typeof item.powerRating === "number") &&
+    (item.d4cIndex === undefined || item.d4cIndex === null || typeof item.d4cIndex === "number") &&
     typeof item.effectiveStatTotal === "number" &&
     typeof item.coverage === "number" &&
     typeof item.avgScoreUp === "number";
@@ -61,6 +63,7 @@ function parseFavorite(value: unknown): TeamFavorite | null {
     costumeId: item.costumeId,
     leaderIndex: item.leaderIndex,
     powerRating: item.powerRating ?? null,
+    d4cIndex: item.d4cIndex ?? null,
     effectiveStatTotal: item.effectiveStatTotal,
     coverage: item.coverage,
     avgScoreUp: item.avgScoreUp,
