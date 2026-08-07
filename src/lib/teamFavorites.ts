@@ -18,6 +18,11 @@ export type NewTeamFavorite = Omit<TeamFavorite, "id" | "savedAt" | "tags"> & {
   tags?: string[];
 };
 
+type StoredFavorite = Omit<TeamFavorite, "d4cIndex" | "tags"> & {
+  d4cIndex?: number | null;
+  tags?: unknown;
+};
+
 const STORAGE_TEAM_FAVORITES = "holodream-team-favorites-v1";
 
 function makeId(): string {
@@ -36,10 +41,10 @@ function normalizeTags(value: unknown): string[] {
   return [...new Set(value.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))].slice(0, 8);
 }
 
-function parseFavorite(value: unknown): TeamFavorite | null {
-  if (!value || typeof value !== "object") return null;
-  const item = value as Partial<TeamFavorite>;
-  const valid =
+function isStoredFavorite(value: unknown): value is StoredFavorite {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<StoredFavorite>;
+  return (
     typeof item.id === "string" &&
     typeof item.accountId === "string" &&
     typeof item.accountName === "string" &&
@@ -52,22 +57,26 @@ function parseFavorite(value: unknown): TeamFavorite | null {
     (item.d4cIndex === undefined || item.d4cIndex === null || typeof item.d4cIndex === "number") &&
     typeof item.effectiveStatTotal === "number" &&
     typeof item.coverage === "number" &&
-    typeof item.avgScoreUp === "number";
-  if (!valid) return null;
+    typeof item.avgScoreUp === "number"
+  );
+}
+
+function parseFavorite(value: unknown): TeamFavorite | null {
+  if (!isStoredFavorite(value)) return null;
   return {
-    id: item.id,
-    accountId: item.accountId,
-    accountName: item.accountName,
-    savedAt: item.savedAt,
-    cardIds: [...item.cardIds],
-    costumeId: item.costumeId,
-    leaderIndex: item.leaderIndex,
-    powerRating: item.powerRating ?? null,
-    d4cIndex: item.d4cIndex ?? null,
-    effectiveStatTotal: item.effectiveStatTotal,
-    coverage: item.coverage,
-    avgScoreUp: item.avgScoreUp,
-    tags: normalizeTags(item.tags),
+    id: value.id,
+    accountId: value.accountId,
+    accountName: value.accountName,
+    savedAt: value.savedAt,
+    cardIds: [...value.cardIds],
+    costumeId: value.costumeId,
+    leaderIndex: value.leaderIndex,
+    powerRating: value.powerRating,
+    d4cIndex: value.d4cIndex ?? null,
+    effectiveStatTotal: value.effectiveStatTotal,
+    coverage: value.coverage,
+    avgScoreUp: value.avgScoreUp,
+    tags: normalizeTags(value.tags),
   };
 }
 
