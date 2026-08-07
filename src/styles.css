@@ -1602,23 +1602,69 @@ article.card-item {
   margin: 0;
 }
 
-.comment-overlay {
+.comment-page {
   position: fixed;
   inset: 0;
   z-index: 200;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background: rgba(8, 2, 18, 0.72);
-  backdrop-filter: blur(4px);
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(157, 78, 221, 0.22), transparent),
+    linear-gradient(180deg, #12061f 0%, #0a0312 100%);
 }
 
-.comment-modal {
-  width: min(520px, 100%);
-  max-height: min(85vh, 640px);
+.comment-page-toolbar {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(199, 125, 255, 0.2);
+  background: rgba(28, 12, 48, 0.92);
+}
+
+.comment-page-title {
+  margin: 0;
+  font-size: 1.05rem;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+.comment-back {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(199, 125, 255, 0.35);
+  background: rgba(199, 125, 255, 0.1);
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.comment-back:hover {
+  background: rgba(199, 125, 255, 0.2);
+}
+
+.comment-toolbar-spacer {
+  width: 4.5rem;
+}
+
+.comment-page-main {
+  flex: 1;
   overflow-y: auto;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  padding: 1rem 1rem 0.5rem;
+  width: min(640px, 100%);
+  margin: 0 auto;
+}
+
+.comment-page-compose {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 1.25rem;
+  border-top: 1px solid rgba(199, 125, 255, 0.2);
+  background: rgba(28, 12, 48, 0.95);
+  width: min(640px, 100%);
+  margin: 0 auto;
 }
 
 .comment-board-actions {
@@ -1674,8 +1720,6 @@ article.card-item {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-height: 320px;
-  overflow-y: auto;
   margin: 1rem 0;
   padding-right: 0.25rem;
 }
@@ -1731,8 +1775,6 @@ article.card-item {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  border-top: 1px solid rgba(199, 125, 255, 0.15);
-  padding-top: 1rem;
 }
 
 .comment-field {

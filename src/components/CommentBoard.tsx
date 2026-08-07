@@ -10,6 +10,8 @@ import {
   type GuestComment,
 } from "../lib/commentStore";
 
+const GUESTBOOK_HASH = "#guestbook";
+
 function formatWhen(iso: string, locale: string): string {
   try {
     return new Date(iso).toLocaleString(locale, {
@@ -27,6 +29,23 @@ type CommentBoardProps = {
   open: boolean;
   onClose: () => void;
 };
+
+export function guestbookHashActive(): boolean {
+  return window.location.hash === GUESTBOOK_HASH;
+}
+
+export function openGuestbookHash(): void {
+  if (window.location.hash !== GUESTBOOK_HASH) {
+    window.history.pushState({ guestbook: true }, "", GUESTBOOK_HASH);
+  }
+}
+
+export function closeGuestbookHash(): void {
+  if (window.location.hash === GUESTBOOK_HASH) {
+    const url = `${window.location.pathname}${window.location.search}`;
+    window.history.replaceState(null, "", url);
+  }
+}
 
 export function CommentBoard({ open, onClose }: CommentBoardProps) {
   const { t, locale } = useI18n();
@@ -97,37 +116,33 @@ export function CommentBoard({ open, onClose }: CommentBoardProps) {
   if (!open) return null;
 
   return (
-    <div className="comment-overlay" role="presentation" onClick={onClose}>
-      <section
-        className="panel comment-board comment-modal"
-        aria-label={t.commentBoardTitle}
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="panel-head comment-board-head">
-          <h2>{t.commentBoardTitle}</h2>
-          <div className="comment-board-actions">
-            {enabled && (
-              <button
-                type="button"
-                className="comment-refresh"
-                onClick={() => void reload()}
-                disabled={loading}
-              >
-                {t.commentBoardRefresh}
-              </button>
-            )}
-            <button type="button" className="comment-close" onClick={onClose} aria-label={t.commentBoardClose}>
-              ×
-            </button>
-          </div>
-        </div>
-
-        {!enabled ? (
-          <p className="panel-note">{t.commentBoardUnavailable}</p>
+    <div className="comment-page" role="dialog" aria-modal="true" aria-label={t.commentBoardTitle}>
+      <header className="comment-page-toolbar">
+        <button type="button" className="comment-back" onClick={onClose}>
+          {t.commentBoardBack}
+        </button>
+        <h1 className="comment-page-title">{t.commentBoardTitle}</h1>
+        {enabled ? (
+          <button
+            type="button"
+            className="comment-refresh"
+            onClick={() => void reload()}
+            disabled={loading}
+          >
+            {t.commentBoardRefresh}
+          </button>
         ) : (
-          <>
+          <span className="comment-toolbar-spacer" aria-hidden />
+        )}
+      </header>
+
+      {!enabled ? (
+        <div className="comment-page-main">
+          <p className="panel-note">{t.commentBoardUnavailable}</p>
+        </div>
+      ) : (
+        <>
+          <div className="comment-page-main">
             <p className="panel-note">{t.commentBoardNote}</p>
 
             <div className="comment-list" aria-live="polite">
@@ -150,7 +165,9 @@ export function CommentBoard({ open, onClose }: CommentBoardProps) {
                 </article>
               ))}
             </div>
+          </div>
 
+          <footer className="comment-page-compose">
             <form className="comment-form" onSubmit={(e) => void onSubmit(e)}>
               <label className="comment-field">
                 <span>{t.commentBoardNickname}</span>
@@ -182,9 +199,9 @@ export function CommentBoard({ open, onClose }: CommentBoardProps) {
                 {submitting ? t.commentBoardSubmitting : t.commentBoardSubmit}
               </button>
             </form>
-          </>
-        )}
-      </section>
+          </footer>
+        </>
+      )}
     </div>
   );
 }

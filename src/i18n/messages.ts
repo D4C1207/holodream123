@@ -187,6 +187,7 @@ export type Messages = {
   commentBoardAnonymous: string;
   commentBoardRefresh: string;
   commentBoardClose: string;
+  commentBoardBack: string;
 };
 
 const zh: Messages = {
@@ -375,6 +376,7 @@ const zh: Messages = {
   commentBoardAnonymous: "匿名",
   commentBoardRefresh: "重新整理",
   commentBoardClose: "關閉",
+  commentBoardBack: "← 返回",
 };
 
 const en: Messages = {
@@ -568,6 +570,7 @@ const en: Messages = {
   commentBoardAnonymous: "Anonymous",
   commentBoardRefresh: "Refresh",
   commentBoardClose: "Close",
+  commentBoardBack: "← Back",
 };
 
 const ja: Messages = {
@@ -761,6 +764,7 @@ const ja: Messages = {
   commentBoardAnonymous: "匿名",
   commentBoardRefresh: "更新",
   commentBoardClose: "閉じる",
+  commentBoardBack: "← 戻る",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { zh, en, ja };
