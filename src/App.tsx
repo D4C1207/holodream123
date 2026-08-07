@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import gameData from "./data/gameData.json";
 import { CardArt } from "./components/CardArt";
 import { CardFilterToolbar, CardGroupBrowser } from "./components/CardBrowser";
@@ -36,13 +36,23 @@ import {
   formatCostumeSkillText,
   formatPassiveSkill,
 } from "./lib/skillText";
+import {
+  bootstrapRosterProfiles,
+  createRosterProfile,
+  deleteRosterInventory,
+  exportRosterInventory,
+  loadRosterInventory,
+  parseRosterImport,
+  saveRosterInventory,
+  saveRosterProfiles,
+  setActiveRosterProfile,
+  type RosterProfile,
+} from "./lib/rosterProfiles";
 import type { Attr, Card, Costume, GameData, TeamEvaluation } from "./types";
 
 const data = gameData as GameData;
 const STORAGE_LOCKED = "holodream-wanted-members";
 const STORAGE_PREF_CARDS = "holodream-preferred-cards";
-const STORAGE_ROSTER = "holodream-owned-roster";
-const STORAGE_ROSTER_CARDS = "holodream-roster-preferred-cards";
 
 const allCardIds = new Set(data.cards.map((c) => c.id));
 const allCostumeIds = new Set(data.costumes.map((c) => c.id));
@@ -87,25 +97,6 @@ function defaultRosterCardIds(member: string): string[] {
   return rosterCardsForMember(member).map((c) => c.id);
 }
 
-function loadRosterOwnedCards(): Record<string, string[]> {
-  try {
-    const raw = localStorage.getItem(STORAGE_ROSTER_CARDS);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const out: Record<string, string[]> = {};
-    for (const [member, value] of Object.entries(parsed)) {
-      if (Array.isArray(value)) {
-        out[member] = value.filter((id): id is string => typeof id === "string");
-      } else if (typeof value === "string") {
-        out[member] = [value];
-      }
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
 function loadJson<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -118,6 +109,71 @@ function loadJson<T>(key: string, fallback: T): T {
 
 export default function App() {
   const { locale, setLocale, t, attrLabel } = useI18n();
+  const rosterUi =
+    locale === "ja"
+      ? {
+          account: "ゲームアカウント",
+          rosterNote: "このゲームアカウントが所持している★5／イベントカードと衣装を登録してください。隊長・衣装・5人編成は自動で選ばれます。",
+          emptyReady: "バッグ設定後、右下のボタンで隊長・衣装・5人編成を自動計算します。",
+          newAccount: "追加",
+          rename: "名前変更",
+          delete: "削除",
+          import: "バッグをインポート",
+          export: "エクスポート",
+          costumeTitle: "所持している衣装",
+          costumeNote: "所持衣装だけを選択してください。隊長と衣装は計算時に自動選択されます。",
+          clearCostumes: "衣装をクリア",
+          needCostume: "所持衣装を1つ以上選択してください。",
+          autoCaptain: "隊長・衣装を自動選択",
+          accountPrompt: "新しいゲームアカウント名",
+          renamePrompt: "ゲームアカウント名を変更",
+          deleteConfirm: "このアカウントのローカル保存データを削除しますか？",
+          importOk: "このアカウントのバッグを更新しました。",
+          importFail: "バッグJSONを読み込めませんでした。",
+        }
+      : locale === "en"
+        ? {
+            account: "Game account",
+            rosterNote: "Save the ★5/event cards and costumes owned by this game account. Captain, costume, and the five-member team are selected automatically.",
+            emptyReady: "After setting the inventory, use the button at bottom right to calculate the best captain, costume, and five-member team.",
+            newAccount: "Add",
+            rename: "Rename",
+            delete: "Delete",
+            import: "Import inventory",
+            export: "Export",
+            costumeTitle: "Owned costumes",
+            costumeNote: "Select only costumes this account owns. Captain and costume are chosen automatically.",
+            clearCostumes: "Clear costumes",
+            needCostume: "Select at least one owned costume.",
+            autoCaptain: "Auto captain + costume",
+            accountPrompt: "New game account name",
+            renamePrompt: "Rename game account",
+            deleteConfirm: "Delete this account's locally saved inventory?",
+            importOk: "Inventory updated for this account.",
+            importFail: "Could not read the inventory JSON.",
+          }
+        : {
+            account: "遊戲帳號",
+            rosterNote: "記錄這個遊戲帳號實際持有的 ★5／活動卡與衣裝；隊長、衣裝與五人編成都會由系統自動挑選。",
+            emptyReady: "背包設定完成後，按右下角即可自動計算最佳隊長、衣裝與五人編成。",
+            newAccount: "新增帳號",
+            rename: "改名",
+            delete: "刪除",
+            import: "匯入背包",
+            export: "匯出",
+            costumeTitle: "持有衣裝",
+            costumeNote: "只勾選此帳號實際持有的衣裝；計算時會自動挑隊長與衣裝，不用先指定。",
+            clearCostumes: "清空衣裝",
+            needCostume: "請至少選擇一件已持有衣裝。",
+            autoCaptain: "自動挑隊長＋衣裝",
+            accountPrompt: "新增遊戲帳號名稱",
+            renamePrompt: "修改遊戲帳號名稱",
+            deleteConfirm: "要刪除這個帳號在瀏覽器內保存的背包資料嗎？",
+            importOk: "已更新此帳號的背包。",
+            importFail: "背包 JSON 無法讀取。",
+          };
+
+  const [rosterBootstrap] = useState(() => bootstrapRosterProfiles(data));
   const [theme, setTheme] = useState<AppTheme>("gallery");
   const [wantedMembers, setWantedMembers] = useState<string[]>(() =>
     loadJson<string[]>(STORAGE_LOCKED, []).slice(0, 5),
@@ -129,6 +185,7 @@ export default function App() {
   const [rarityFilters, setRarityFilters] = useState<number[]>([]);
   const [unitFilters, setUnitFilters] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [leaderUnit, setLeaderUnit] = useState("");
   const [leaderMember, setLeaderMember] = useState("");
   const [leaderCostumeId, setLeaderCostumeId] = useState("");
@@ -138,17 +195,27 @@ export default function App() {
   const [viewingPrBaseline, setViewingPrBaseline] = useState(false);
   const [busy, setBusy] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [cardsCompact, setCardsCompact] = useState(false);
+  const [cardsCompact, setCardsCompact] = useState(true);
   const [allowDuplicateSkills, setAllowDuplicateSkills] = useState(true);
-  const [ownedRosterMembers, setOwnedRosterMembers] = useState<string[]>(() =>
-    loadJson<string[]>(STORAGE_ROSTER, []),
+  const [rosterProfiles, setRosterProfiles] = useState<RosterProfile[]>(rosterBootstrap.profiles);
+  const [activeRosterProfileId, setActiveRosterProfileId] = useState(rosterBootstrap.activeId);
+  const [ownedRosterMembers, setOwnedRosterMembers] = useState<string[]>(
+    rosterBootstrap.inventory.members,
   );
-  const [rosterOwnedCards, setRosterOwnedCards] = useState<Record<string, string[]>>(() =>
-    loadRosterOwnedCards(),
+  const [rosterOwnedCards, setRosterOwnedCards] = useState<Record<string, string[]>>(
+    rosterBootstrap.inventory.cardsByMember,
+  );
+  const [ownedRosterCostumeIds, setOwnedRosterCostumeIds] = useState<string[]>(
+    rosterBootstrap.inventory.costumeIds,
   );
 
   const wantedSet = useMemo(() => new Set(wantedMembers), [wantedMembers]);
   const rosterSet = useMemo(() => new Set(ownedRosterMembers), [ownedRosterMembers]);
+  const rosterCostumeSet = useMemo(() => new Set(ownedRosterCostumeIds), [ownedRosterCostumeIds]);
+  const activeRosterProfile = useMemo(
+    () => rosterProfiles.find((p) => p.id === activeRosterProfileId) ?? rosterProfiles[0],
+    [rosterProfiles, activeRosterProfileId],
+  );
 
   const unitOptions = useMemo(() => {
     const present = new Set(
@@ -196,11 +263,9 @@ export default function App() {
   }
 
   function rosterOwnedCardIdsForOptimize(): Set<string> {
-    const ids = new Set(allCardIds);
+    const ids = new Set<string>();
     for (const member of ownedRosterMembers) {
-      for (const card of rosterCardsForMember(member)) {
-        if (!rosterOwnedIds(member).includes(card.id)) ids.delete(card.id);
-      }
+      for (const id of rosterOwnedIds(member)) ids.add(id);
     }
     return ids;
   }
@@ -220,14 +285,14 @@ export default function App() {
         return unitFilters.includes(primaryUnit(unitsOf(c.member), c.unit));
       })
       .filter((c) => {
-        if (!query.trim()) return true;
-        const q = query.trim().toLowerCase();
+        if (!deferredQuery.trim()) return true;
+        const q = deferredQuery.trim().toLowerCase();
         return (
           matchesQuery(c.member, q, unitsOf(c.member)) ||
           c.costumeName.toLowerCase().includes(q) ||
           c.unit.toLowerCase().includes(q) ||
           (c.event ?? "").toLowerCase().includes(q) ||
-          attrLabel(c.type).includes(query.trim())
+          attrLabel(c.type).includes(deferredQuery.trim())
         );
       })
       .sort((a, b) => {
@@ -245,12 +310,12 @@ export default function App() {
 
   const galleryVisibleCards = useMemo(
     () => filterAndSortCards(data.cards, true),
-    [typeFilters, rarityFilters, unitFilters, query, locale],
+    [typeFilters, rarityFilters, unitFilters, deferredQuery, locale],
   );
 
   const optimizeVisibleCards = useMemo(
     () => filterAndSortCards(data.cards.filter(isOptimizePoolCard), false),
-    [typeFilters, unitFilters, query, locale],
+    [typeFilters, unitFilters, deferredQuery, locale],
   );
 
   function toggleUnitFilter(unit: string) {
@@ -329,15 +394,106 @@ export default function App() {
     }));
   }, []);
 
-  function persistRosterCards(prefs: Record<string, string[]>) {
-    localStorage.setItem(STORAGE_ROSTER_CARDS, JSON.stringify(prefs));
+  const rosterCostumeGroups = useMemo(() => {
+    const map = new Map<string, Costume[]>();
+    for (const costume of data.costumes) {
+      const list = map.get(costume.member) ?? [];
+      list.push(costume);
+      map.set(costume.member, list);
+    }
+    return [...map.entries()]
+      .sort((a, b) => compareMembersByGroup(a[0], b[0], unitsOf))
+      .map(([member, costumes]) => ({
+        member,
+        costumes: [...costumes].sort((a, b) => b.skill.score - a.skill.score),
+      }));
+  }, []);
+
+  function persistRosterSnapshot(
+    members: string[],
+    cardsByMember: Record<string, string[]>,
+    costumeIds: string[],
+  ) {
+    saveRosterInventory(activeRosterProfileId, { members, cardsByMember, costumeIds });
+  }
+
+  function switchRosterProfile(profileId: string) {
+    const inventory = loadRosterInventory(profileId);
+    setActiveRosterProfileId(profileId);
+    setActiveRosterProfile(profileId);
+    setOwnedRosterMembers(inventory.members);
+    setRosterOwnedCards(inventory.cardsByMember);
+    setOwnedRosterCostumeIds(inventory.costumeIds);
+    setResult(null);
+  }
+
+  function addRosterProfile() {
+    const name = window.prompt(rosterUi.accountPrompt)?.trim();
+    if (!name) return;
+    const profile = createRosterProfile(name);
+    const next = [...rosterProfiles, profile];
+    setRosterProfiles(next);
+    saveRosterProfiles(next);
+    saveRosterInventory(profile.id, { members: [], cardsByMember: {}, costumeIds: [] });
+    switchRosterProfile(profile.id);
+  }
+
+  function renameRosterProfile() {
+    if (!activeRosterProfile) return;
+    const name = window.prompt(rosterUi.renamePrompt, activeRosterProfile.name)?.trim();
+    if (!name) return;
+    const next = rosterProfiles.map((p) =>
+      p.id === activeRosterProfile.id ? { ...p, name } : p,
+    );
+    setRosterProfiles(next);
+    saveRosterProfiles(next);
+  }
+
+  function removeRosterProfile() {
+    if (!activeRosterProfile || rosterProfiles.length <= 1) return;
+    if (!window.confirm(rosterUi.deleteConfirm)) return;
+    const next = rosterProfiles.filter((p) => p.id !== activeRosterProfile.id);
+    deleteRosterInventory(activeRosterProfile.id);
+    setRosterProfiles(next);
+    saveRosterProfiles(next);
+    switchRosterProfile(next[0].id);
+  }
+
+  async function importRosterFile(file: File | null) {
+    if (!file) return;
+    try {
+      const inventory = parseRosterImport(await file.text(), data);
+      setOwnedRosterMembers(inventory.members);
+      setRosterOwnedCards(inventory.cardsByMember);
+      setOwnedRosterCostumeIds(inventory.costumeIds);
+      saveRosterInventory(activeRosterProfileId, inventory);
+      setResult(null);
+      alert(rosterUi.importOk);
+    } catch {
+      alert(rosterUi.importFail);
+    }
+  }
+
+  function exportActiveRoster() {
+    if (!activeRosterProfile) return;
+    const payload = exportRosterInventory(activeRosterProfile, {
+      members: ownedRosterMembers,
+      cardsByMember: rosterOwnedCards,
+      costumeIds: ownedRosterCostumeIds,
+    });
+    const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `holodream-${activeRosterProfile.name.replace(/[^\p{L}\p{N}_-]+/gu, "-")}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   function toggleRosterMember(member: string) {
     setOwnedRosterMembers((prev) => {
       const removing = prev.includes(member);
       const next = removing ? prev.filter((m) => m !== member) : [...prev, member];
-      localStorage.setItem(STORAGE_ROSTER, JSON.stringify(next));
       setRosterOwnedCards((prefs) => {
         const nextPrefs = { ...prefs };
         if (removing) {
@@ -345,7 +501,7 @@ export default function App() {
         } else {
           nextPrefs[member] = defaultRosterCardIds(member);
         }
-        persistRosterCards(nextPrefs);
+        persistRosterSnapshot(next, nextPrefs, ownedRosterCostumeIds);
         return nextPrefs;
       });
       setResult(null);
@@ -364,7 +520,7 @@ export default function App() {
     setRosterOwnedCards((prev) => {
       const nextIds = has ? current.filter((id) => id !== card.id) : [...current, card.id];
       const next = { ...prev, [card.member]: nextIds };
-      persistRosterCards(next);
+      persistRosterSnapshot(ownedRosterMembers, next, ownedRosterCostumeIds);
       setResult(null);
       return next;
     });
@@ -373,8 +529,24 @@ export default function App() {
   function clearRosterMembers() {
     setOwnedRosterMembers([]);
     setRosterOwnedCards({});
-    localStorage.setItem(STORAGE_ROSTER, "[]");
-    persistRosterCards({});
+    persistRosterSnapshot([], {}, ownedRosterCostumeIds);
+    setResult(null);
+  }
+
+  function toggleRosterCostume(costumeId: string) {
+    setOwnedRosterCostumeIds((prev) => {
+      const next = prev.includes(costumeId)
+        ? prev.filter((id) => id !== costumeId)
+        : [...prev, costumeId];
+      persistRosterSnapshot(ownedRosterMembers, rosterOwnedCards, next);
+      setResult(null);
+      return next;
+    });
+  }
+
+  function clearRosterCostumes() {
+    setOwnedRosterCostumeIds([]);
+    persistRosterSnapshot(ownedRosterMembers, rosterOwnedCards, []);
     setResult(null);
   }
 
@@ -567,8 +739,8 @@ export default function App() {
         return;
       }
     }
-    if (!leaderMember) {
-      alert(t.alertNeedLeader);
+    if (!ownedRosterCostumeIds.length) {
+      alert(rosterUi.needCostume);
       return;
     }
 
@@ -576,10 +748,10 @@ export default function App() {
     void prepareAndRunOptimize(
       rosterOwnedCardIdsForOptimize(),
       {
-        ownedCostumeIds: allCostumeIds,
+        ownedCostumeIds: new Set(ownedRosterCostumeIds),
         songLength: SONG_LENGTH,
-        fixedLeader: leaderMember,
-        fixedCostumeId: leaderCostumeId || null,
+        fixedLeader: null,
+        fixedCostumeId: null,
         fixedMembers: [],
         memberPool: ownedRosterMembers,
         maxResults: 8,
@@ -632,11 +804,7 @@ export default function App() {
 
   const prBaselineTeam = useMemo(() => {
     if (!result) return null;
-    return (
-      result.baselineTeam ??
-      result.byOverall.find((ev) => ev.powerRating === 9999) ??
-      null
-    );
+    return result.baselineTeam ?? null;
   }, [result]);
 
   const detailEv = viewingPrBaseline && prBaselineTeam ? prBaselineTeam : selected;
@@ -803,6 +971,50 @@ export default function App() {
               {t.rosterClear}
             </button>
           </div>
+          <div className="roster-account-bar">
+            <label className="field grow">
+              <span>{rosterUi.account}</span>
+              <select
+                value={activeRosterProfileId}
+                onChange={(e) => switchRosterProfile(e.target.value)}
+              >
+                {rosterProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="btn btn-ghost" type="button" onClick={addRosterProfile}>
+              {rosterUi.newAccount}
+            </button>
+            <button className="btn btn-ghost" type="button" onClick={renameRosterProfile}>
+              {rosterUi.rename}
+            </button>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              disabled={rosterProfiles.length <= 1}
+              onClick={removeRosterProfile}
+            >
+              {rosterUi.delete}
+            </button>
+            <label className="btn btn-ghost roster-import-btn">
+              {rosterUi.import}
+              <input
+                type="file"
+                accept="application/json,.json"
+                hidden
+                onChange={(e) => {
+                  void importRosterFile(e.target.files?.[0] ?? null);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <button className="btn btn-ghost" type="button" onClick={exportActiveRoster}>
+              {rosterUi.export}
+            </button>
+          </div>
           <p className="panel-note">{t.rosterNote}</p>
           {ownedRosterMembers.length < 5 && (
             <p className="roster-hint">{t.rosterNeedFive}</p>
@@ -880,9 +1092,52 @@ export default function App() {
               })}
             </div>
           )}
+          <div className="roster-costume-pick">
+            <div className="panel-head roster-panel-head">
+              <div>
+                <h3>{rosterUi.costumeTitle}（{ownedRosterCostumeIds.length}）</h3>
+                <p className="panel-note">{rosterUi.costumeNote}</p>
+              </div>
+              <button className="btn btn-ghost" type="button" onClick={clearRosterCostumes}>
+                {rosterUi.clearCostumes}
+              </button>
+            </div>
+            <div className="roster-costume-list">
+              {rosterCostumeGroups.map(({ member, costumes }) => (
+                <div key={member} className="roster-costume-row">
+                  <div className="roster-card-pick-label">
+                    <Portrait member={member} size="sm" />
+                    <MemberName member={member} units={unitsOf(member)} />
+                  </div>
+                  <div className="roster-costume-options">
+                    {costumes.map((costume) => {
+                      const owned = rosterCostumeSet.has(costume.id);
+                      const card = data.cards.find(
+                        (c) => c.member === costume.member && c.costumeName === costume.costumeName,
+                      );
+                      return (
+                        <button
+                          key={costume.id}
+                          type="button"
+                          className={`roster-costume-option ${owned ? "active" : ""}`}
+                          aria-pressed={owned}
+                          onClick={() => toggleRosterCostume(costume.id)}
+                        >
+                          {owned && <span className="roster-card-check" aria-hidden>✓</span>}
+                          <CardArt cardId={card?.id} alt={costume.costumeName} />
+                          <span>{costume.costumeName}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       )}
 
+      {theme === "optimize" && (
       <section className="panel captain-panel">
         <h2>{t.captainTitle}</h2>
         <div className="toolbar">
@@ -1015,6 +1270,7 @@ export default function App() {
           </div>
         )}
       </section>
+      )}
 
       <div className="stack">
         {theme === "optimize" && (
@@ -1114,11 +1370,15 @@ export default function App() {
           </div>
           {!result ? (
             <div className="empty">
-              {leaderMember
-                ? t.resultsEmptyWithLeader(
-                    displayName(leaderMember, unitsOf(leaderMember), locale),
-                  )
-                : t.resultsEmpty}
+              {theme === "roster"
+                ? ownedRosterMembers.length < 5
+                  ? t.rosterNeedFive
+                  : rosterUi.emptyReady
+                : leaderMember
+                  ? t.resultsEmptyWithLeader(
+                      displayName(leaderMember, unitsOf(leaderMember), locale),
+                    )
+                  : t.resultsEmpty}
             </div>
           ) : (
             <>
@@ -1317,7 +1577,7 @@ export default function App() {
               <div className="skill-banner">
                 <strong>{t.leaderCostume}</strong>
                 <span>
-                  {displayName(leaderMember, unitsOf(leaderMember), locale)}
+                  {displayName(detailEv.costume.member, unitsOf(detailEv.costume.member), locale)}
                   {detailEv.leaderIndex < 0 ? t.captainOffTeam : ""}
                   {" · "}
                   {formatCostumeSkillText(detailEv.costume.skill, locale)}
@@ -1506,16 +1766,17 @@ export default function App() {
         onClick={theme === "roster" ? runRosterOptimize : runOptimize}
         disabled={
           busy ||
-          !leaderMember ||
-          (theme === "roster" && ownedRosterMembers.length < 5)
+          (theme === "roster"
+            ? ownedRosterMembers.length < 5 || ownedRosterCostumeIds.length === 0
+            : !leaderMember)
         }
         title={
           theme === "roster"
             ? ownedRosterMembers.length < 5
               ? t.rosterNeedFive
-              : !leaderMember
-                ? t.fabTitleNeedLeader
-                : t.fabTitleReady
+              : ownedRosterCostumeIds.length === 0
+                ? rosterUi.needCostume
+                : rosterUi.autoCaptain
             : !leaderMember
               ? t.fabTitleNeedLeader
               : t.fabTitleReady
@@ -1525,10 +1786,14 @@ export default function App() {
           {busy ? t.fabBusy : theme === "roster" ? t.fabRosterRun : t.fabRun}
         </span>
         <span className="fab-optimize-sub">
-          {leaderMember
-            ? displayName(leaderMember, unitsOf(leaderMember), locale)
-            : theme === "roster" && ownedRosterMembers.length < 5
+          {theme === "roster"
+            ? ownedRosterMembers.length < 5
               ? t.rosterNeedFive
+              : ownedRosterCostumeIds.length === 0
+                ? rosterUi.needCostume
+                : rosterUi.autoCaptain
+            : leaderMember
+              ? displayName(leaderMember, unitsOf(leaderMember), locale)
               : t.fabPickLeader}
         </span>
       </button>

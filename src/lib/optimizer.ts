@@ -1000,10 +1000,14 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
   ).size;
 
   const required = new Set<string>(options.fixedMembers ?? []);
+  const autoCaptainInventory =
+    !options.fixedLeader && (options.memberPool?.length ?? 0) > 0;
 
   // Fixed captain costume: full enumeration (captain may be off-team).
   if (options.fixedLeader && options.fixedCostumeId) return optimizeTeam(data, options);
-  if (ownedCount <= 28 || required.size >= 2) return optimizeTeam(data, options);
+  if (!autoCaptainInventory && (ownedCount <= 28 || required.size >= 2)) {
+    return optimizeTeam(data, options);
+  }
 
   const started = performance.now();
   const maxResults = options.maxResults ?? 8;
@@ -1018,6 +1022,7 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
     list.push(c);
     byMember.set(c.member, list);
   }
+  applyMemberPool(byMember, options.memberPool);
 
   const pick = (member: string, costume?: Costume | null) =>
     pickCardForMember(
@@ -1041,17 +1046,13 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
   let searched = 0;
   const members = [...byMember.keys()];
 
-  for (const costume of ownedCostumes.slice(0, 40)) {
-    if (required.size && !required.has(costume.member) && options.fixedLeader) continue;
-    const leaderCard = pick(costume.member, costume);
-    if (!leaderCard) continue;
-
-    const must = [...required].filter((m) => m !== costume.member);
-    if (1 + must.length > 5) continue;
+  for (const costume of ownedCostumes) {
+    const must = [...required];
+    if (must.length > 5) continue;
     const mustCards = must.map((m) => pick(m, costume)).filter((c): c is Card => !!c);
     if (mustCards.length !== must.length) continue;
 
-    const blocked = new Set([costume.member, ...must]);
+    const blocked = new Set(must);
     const others = members
       .filter((m) => !blocked.has(m))
       .map((m) => ({ m, card: pick(m, costume)! }))
@@ -1061,13 +1062,14 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
           fillerPriority(b.m, b.card, costume, data) - fillerPriority(a.m, a.card, costume, data),
       );
 
-    const need = 4 - mustCards.length;
-    // Larger pool so absolute metric tops are less likely to be missed.
-    const candidatePool = others.slice(0, Math.max(24, need + 16));
+    const need = 5 - mustCards.length;
+    // Keep the automatic inventory search bounded; this is the main large-box speed control.
+    const candidatePool = others.slice(0, Math.max(18, need + 12));
     for (const combo of combinations(candidatePool, need)) {
-      const teamCards = [leaderCard, ...mustCards, ...combo.map((c) => c.card)];
+      const teamCards = [...mustCards, ...combo.map((c) => c.card)];
       if (hasDuplicateMembers(teamCards)) continue;
-      const ev = evaluateTeam(teamCards, 0, costume, data, options.songLength);
+      const leaderIndex = teamCards.findIndex((c) => c.member === costume.member);
+      const ev = evaluateTeam(teamCards, leaderIndex, costume, data, options.songLength);
       searched += 1;
       recordCandidate(
         ev,
