@@ -1,11 +1,29 @@
-/* D4C layout refresh: change the outer shell while preserving roster/card/result core UI. */
+/* D4C / Suisei command-deck shell.
+ * Keep the roster grid, multi-card picker, and result ranking/detail UI intact.
+ */
+
+:root {
+  --deck-cyan: #72e8ff;
+  --deck-blue: #4a9dff;
+  --deck-indigo: #6f68ff;
+  --deck-ink: #e8f7ff;
+  --deck-surface: rgba(5, 15, 28, 0.86);
+  --deck-line: rgba(114, 232, 255, 0.2);
+}
 
 body {
   background:
-    radial-gradient(circle at 14% 12%, rgba(75, 183, 255, 0.16), transparent 28rem),
-    radial-gradient(circle at 84% 8%, rgba(102, 94, 255, 0.16), transparent 30rem),
-    radial-gradient(circle at 52% 96%, rgba(55, 230, 221, 0.08), transparent 34rem),
-    linear-gradient(155deg, #030813 0%, #071321 48%, #040914 100%) !important;
+    radial-gradient(circle at 18% 8%, rgba(54, 168, 255, 0.18), transparent 28rem),
+    radial-gradient(circle at 84% 18%, rgba(104, 91, 255, 0.16), transparent 32rem),
+    linear-gradient(150deg, #02060d 0%, #06101c 44%, #040813 100%) !important;
+}
+
+body::before {
+  opacity: 0.11 !important;
+  background-image:
+    linear-gradient(rgba(114, 232, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(114, 232, 255, 0.08) 1px, transparent 1px) !important;
+  background-size: 52px 52px !important;
 }
 
 body::after {
@@ -14,302 +32,443 @@ body::after {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.34;
+  opacity: 0.42;
   background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.72) 0 1px, transparent 1.4px),
-    radial-gradient(circle, rgba(91, 205, 255, 0.65) 0 1px, transparent 1.4px),
-    linear-gradient(118deg, transparent 0 46%, rgba(99, 238, 226, 0.05) 46.3% 46.7%, transparent 47% 100%);
-  background-size: 84px 84px, 132px 132px, 100% 100%;
-  background-position: 12px 8px, 52px 38px, 0 0;
-  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.72) 62%, transparent 100%);
+    radial-gradient(circle, rgba(255, 255, 255, 0.8) 0 1px, transparent 1.35px),
+    radial-gradient(circle, rgba(91, 205, 255, 0.72) 0 1px, transparent 1.35px),
+    linear-gradient(124deg, transparent 0 49.6%, rgba(82, 167, 255, 0.055) 49.8% 50.15%, transparent 50.35% 100%);
+  background-size: 116px 116px, 178px 178px, 100% 100%;
+  background-position: 18px 9px, 64px 58px, 0 0;
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.8) 65%, transparent 100%);
 }
 
 .app {
-  width: min(1400px, calc(100% - 2.25rem)) !important;
-  padding-top: 1.15rem !important;
+  position: relative;
+  width: min(1480px, calc(100% - 2.5rem)) !important;
+  padding: 1rem 0 7rem !important;
 }
 
-/* Top shell: deliberately different from the source layout. */
-.hero {
-  min-height: 250px;
-  margin-bottom: 1.2rem !important;
-  padding: 1.25rem 1.55rem 1.4rem 1.8rem !important;
-  border: 1px solid rgba(88, 205, 255, 0.3) !important;
-  border-radius: 30px 10px 30px 10px !important;
-  background:
-    linear-gradient(112deg, rgba(5, 20, 35, 0.98) 0 54%, rgba(11, 18, 44, 0.96) 82%, rgba(8, 14, 32, 0.98) 100%),
-    radial-gradient(circle at 82% 38%, rgba(93, 97, 255, 0.24), transparent 32%) !important;
-  box-shadow:
-    0 28px 80px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-}
-
-.hero::before {
+.app::before {
   content: "";
-  position: absolute;
-  left: -10%;
-  bottom: 44px;
-  width: 72%;
-  height: 1px;
+  position: fixed;
+  left: max(10px, calc((100vw - 1480px) / 2 - 12px));
+  top: 92px;
+  bottom: 70px;
+  width: 2px;
   pointer-events: none;
-  opacity: 0.65;
-  background: linear-gradient(90deg, transparent, rgba(99, 238, 226, 0.2), rgba(82, 167, 255, 0.85), transparent);
-  transform: rotate(-5deg);
-  box-shadow: 0 0 18px rgba(82, 167, 255, 0.4);
+  background: linear-gradient(to bottom, transparent, rgba(114, 232, 255, 0.72) 18%, rgba(79, 116, 255, 0.4) 76%, transparent);
+  box-shadow: 0 0 18px rgba(76, 181, 255, 0.28);
 }
 
-.hero::after {
-  content: "SUISEI" !important;
-  right: clamp(22px, 5vw, 76px) !important;
-  top: 48% !important;
-  font-size: clamp(74px, 11vw, 164px) !important;
-  letter-spacing: 0.03em !important;
-  color: rgba(97, 208, 255, 0.045) !important;
-}
-
-.hero-main {
-  grid-template-columns: minmax(0, 1fr) 190px !important;
-  gap: clamp(1.4rem, 4vw, 4rem) !important;
-  align-items: end !important;
-}
-
-.hero-copy {
-  gap: 0.42rem !important;
-}
-
-.hero-kicker {
-  width: fit-content;
-  padding: 0.25rem 0.55rem;
-  border: 1px solid rgba(99, 238, 226, 0.2);
-  border-radius: 999px;
-  background: rgba(7, 25, 41, 0.72);
-  color: #9cecea !important;
-  letter-spacing: 0.12em !important;
-}
-
-.brand {
-  font-size: clamp(2.5rem, 7vw, 4.4rem) !important;
-  letter-spacing: 0.1em !important;
-  line-height: 1.05;
-}
-
-.brand-sub {
-  width: fit-content;
-  margin-top: 0.15rem !important;
-  color: rgba(206, 240, 255, 0.92) !important;
-}
-
-.lang-switch {
-  position: absolute !important;
-  top: 1rem;
-  right: 1rem;
-  z-index: 5 !important;
-  padding: 0.28rem;
-  border: 1px solid rgba(91, 205, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(3, 12, 24, 0.72);
-  backdrop-filter: blur(12px);
-}
-
-.hero-mascot {
+/* ---------- Command-deck header ---------- */
+.hero {
   position: relative;
-  justify-self: end;
-  align-self: center;
-  min-width: 160px;
-  padding: 0.8rem 0.6rem 0.7rem;
-  border: 1px solid rgba(91, 205, 255, 0.2);
-  border-radius: 46% 54% 48% 52% / 52% 42% 58% 48%;
-  background: radial-gradient(circle at 50% 42%, rgba(84, 146, 255, 0.18), rgba(7, 18, 35, 0.28) 62%, transparent 64%);
-}
-
-.hero-mascot::before,
-.hero-mascot::after {
-  content: "✦";
-  position: absolute;
-  color: rgba(158, 236, 255, 0.82);
-  text-shadow: 0 0 14px rgba(82, 167, 255, 0.9);
-  pointer-events: none;
-}
-
-.hero-mascot::before {
-  left: 8px;
-  top: 18px;
-  font-size: 0.9rem;
-}
-
-.hero-mascot::after {
-  right: 8px;
-  bottom: 26px;
-  font-size: 0.65rem;
-}
-
-.hero-portrait {
-  width: 126px !important;
-  height: 126px !important;
-  border: 2px solid rgba(103, 218, 255, 0.78) !important;
-  box-shadow:
-    0 0 0 5px rgba(88, 112, 255, 0.14),
-    0 0 32px rgba(72, 180, 255, 0.34),
-    0 16px 34px rgba(0, 0, 0, 0.34) !important;
-}
-
-.hero-mascot-caption {
-  margin-top: 0.15rem;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid rgba(91, 205, 255, 0.16);
-  border-radius: 999px;
-  background: rgba(3, 12, 26, 0.62);
-  color: #83dfff !important;
-  letter-spacing: 0.1em !important;
-}
-
-/* Navigation becomes a full-width dashboard dock rather than four floating cards. */
-.theme-tabs {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0 !important;
-  width: min(920px, 100%);
-  margin-top: 1rem !important;
-  overflow: hidden;
-  border: 1px solid rgba(91, 205, 255, 0.2);
-  border-radius: 18px;
-  background: rgba(2, 11, 22, 0.64);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.theme-tab {
-  position: relative;
-  min-height: 66px;
-  padding: 0.75rem 0.9rem !important;
+  min-height: 236px;
+  margin: 0 0 1.5rem !important;
+  padding: 3.35rem 0 0 !important;
+  overflow: visible !important;
   border: 0 !important;
-  border-right: 1px solid rgba(91, 205, 255, 0.12) !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.theme-tab:last-child {
-  border-right: 0 !important;
+.hero::before {
+  content: "D4C // HOLODREAM";
+  position: absolute;
+  top: 0.65rem;
+  left: 0;
+  padding: 0.28rem 0.7rem;
+  border-left: 3px solid var(--deck-cyan);
+  background: linear-gradient(90deg, rgba(34, 113, 167, 0.18), transparent);
+  color: rgba(174, 235, 255, 0.76);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
 }
+
+.hero::after {
+  content: "SUISEI" !important;
+  position: absolute !important;
+  right: 185px !important;
+  top: -6px !important;
+  transform: none !important;
+  font-family: system-ui, sans-serif;
+  font-size: clamp(60px, 8.5vw, 132px) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(87, 190, 255, 0.035) !important;
+  pointer-events: none;
+}
+
+.hero-glow {
+  display: none !important;
+}
+
+.hero-main {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 250px minmax(500px, 1fr) 182px !important;
+  grid-template-rows: auto auto auto !important;
+  gap: 0 1.15rem !important;
+  align-items: stretch !important;
+  min-height: 188px;
+}
+
+/* Let the four hero-copy children participate in the three-column deck grid. */
+.hero-copy {
+  display: contents !important;
+}
+
+.hero-kicker {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  width: fit-content;
+  margin: 0 0 0.45rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #8adff0 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.14em !important;
+}
+
+.brand {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  align-self: center;
+  min-height: 92px;
+  margin: 0 !important;
+  padding: 0.9rem 0.7rem 0.9rem 1rem;
+  border-left: 4px solid var(--deck-cyan);
+  border-top: 1px solid rgba(114, 232, 255, 0.18);
+  border-bottom: 1px solid rgba(114, 232, 255, 0.12);
+  background:
+    linear-gradient(90deg, rgba(27, 108, 163, 0.17), rgba(7, 18, 32, 0.52) 64%, transparent),
+    repeating-linear-gradient(135deg, transparent 0 16px, rgba(95, 209, 255, 0.018) 16px 17px);
+  font-size: clamp(2.55rem, 5vw, 4rem) !important;
+  letter-spacing: 0.12em !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 28px rgba(82, 167, 255, 0.24) !important;
+}
+
+.brand-mark {
+  width: 0.6em !important;
+  height: 0.6em !important;
+  background: linear-gradient(135deg, #89efff, #4e9eff 55%, #7265ff) !important;
+  clip-path: polygon(50% 0, 61% 38%, 100% 50%, 61% 62%, 50% 100%, 39% 62%, 0 50%, 39% 38%) !important;
+  box-shadow: 0 0 22px rgba(91, 205, 255, 0.55) !important;
+  animation: none !important;
+}
+
+.brand-sub {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: start;
+  margin: 0.45rem 0 0 !important;
+  color: rgba(185, 222, 239, 0.8) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.035em !important;
+}
+
+.lang-switch {
+  position: absolute !important;
+  top: -2.75rem !important;
+  right: 0 !important;
+  z-index: 6 !important;
+  display: flex !important;
+  gap: 0.3rem !important;
+  padding: 0.22rem !important;
+  border: 1px solid rgba(114, 232, 255, 0.15);
+  border-radius: 6px !important;
+  background: rgba(3, 11, 21, 0.78) !important;
+  backdrop-filter: blur(14px);
+}
+
+.lang-btn {
+  min-width: 58px;
+  border: 0 !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+}
+
+.lang-btn.active {
+  background: linear-gradient(135deg, rgba(72, 170, 226, 0.25), rgba(88, 91, 230, 0.2)) !important;
+  box-shadow: inset 0 0 0 1px rgba(114, 232, 255, 0.34) !important;
+}
+
+/* Center launcher: visually separate from the original navigation cards. */
+.theme-tabs {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: stretch;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(76px, 1fr));
+  gap: 0.7rem !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.theme-tab {
+  position: relative;
+  display: grid !important;
+  align-content: center;
+  gap: 0.16rem !important;
+  min-height: 78px !important;
+  padding: 0.85rem 1rem 0.8rem 4rem !important;
+  overflow: hidden;
+  border: 1px solid rgba(114, 232, 255, 0.16) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(112deg, rgba(7, 21, 36, 0.94), rgba(7, 13, 29, 0.84)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease !important;
+}
+
+.theme-tab::before {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  transform: translateY(-52%);
+  color: rgba(112, 223, 255, 0.52);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+}
+
+.theme-tab:nth-child(1)::before { content: "01"; }
+.theme-tab:nth-child(2)::before { content: "02"; }
+.theme-tab:nth-child(3)::before { content: "03"; }
+.theme-tab:nth-child(4)::before { content: "04"; }
 
 .theme-tab::after {
   content: "";
   position: absolute;
-  left: 18%;
-  right: 18%;
+  left: 0;
+  top: 0;
   bottom: 0;
-  height: 2px;
-  opacity: 0;
-  background: linear-gradient(90deg, transparent, #5ddfff, #756bff, transparent);
-  box-shadow: 0 0 12px rgba(93, 223, 255, 0.75);
-  transition: opacity 160ms ease, left 160ms ease, right 160ms ease;
+  width: 3px;
+  opacity: 0.22;
+  background: linear-gradient(to bottom, transparent, var(--deck-cyan), var(--deck-indigo), transparent);
+  box-shadow: 0 0 12px rgba(91, 205, 255, 0.46);
+  transition: opacity 160ms ease, width 160ms ease;
+}
+
+.theme-tab small {
+  color: rgba(183, 207, 227, 0.7) !important;
 }
 
 .theme-tab:hover {
-  transform: none !important;
-  background: rgba(60, 145, 255, 0.055) !important;
+  transform: translateX(4px) !important;
+  border-color: rgba(114, 232, 255, 0.34) !important;
+  background: linear-gradient(112deg, rgba(9, 31, 49, 0.98), rgba(11, 17, 38, 0.88)) !important;
 }
 
 .theme-tab.active {
-  background: linear-gradient(180deg, rgba(74, 183, 255, 0.14), rgba(89, 98, 255, 0.06)) !important;
+  border-color: rgba(114, 232, 255, 0.52) !important;
+  background:
+    linear-gradient(110deg, rgba(37, 126, 173, 0.22), rgba(70, 65, 174, 0.15)),
+    rgba(6, 18, 33, 0.94) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(114, 232, 255, 0.08),
+    0 0 24px rgba(68, 166, 255, 0.1) !important;
 }
 
 .theme-tab.active::after {
-  left: 7%;
-  right: 7%;
+  width: 5px;
   opacity: 1;
 }
 
-/* Change surrounding controls, but intentionally leave roster grids/card picker/result cards alone. */
+/* Right idol badge: hexagonal instead of the old circular mascot card. */
+.hero-mascot {
+  grid-column: 3;
+  grid-row: 1 / 4;
+  align-self: stretch;
+  justify-self: stretch !important;
+  position: relative;
+  display: grid !important;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem !important;
+  min-width: 0 !important;
+  padding: 0.9rem 0.55rem !important;
+  border: 1px solid rgba(114, 232, 255, 0.17) !important;
+  border-radius: 0 !important;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(74, 157, 255, 0.16), transparent 48%),
+    linear-gradient(180deg, rgba(7, 23, 40, 0.86), rgba(6, 11, 27, 0.72)) !important;
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+.hero-mascot::before,
+.hero-mascot::after {
+  position: absolute;
+  color: #94eaff;
+  text-shadow: 0 0 14px rgba(82, 167, 255, 0.9);
+  pointer-events: none;
+}
+
+.hero-mascot::before {
+  content: "✦";
+  left: 12px;
+  top: 10px;
+  font-size: 0.85rem;
+}
+
+.hero-mascot::after {
+  content: "02 / SUI";
+  right: 10px;
+  bottom: 8px;
+  color: rgba(137, 218, 255, 0.44);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-shadow: none;
+}
+
+.hero-portrait {
+  width: 126px !important;
+  height: 126px !important;
+  border: 2px solid rgba(114, 232, 255, 0.78) !important;
+  border-radius: 0 !important;
+  clip-path: polygon(50% 0, 91% 24%, 91% 76%, 50% 100%, 9% 76%, 9% 24%);
+  object-fit: cover !important;
+  object-position: center top !important;
+  animation: none !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 0 16px rgba(70, 176, 255, 0.32));
+}
+
+.hero-mascot-caption {
+  padding: 0.24rem 0.52rem;
+  border: 1px solid rgba(114, 232, 255, 0.18);
+  border-radius: 3px !important;
+  background: rgba(3, 12, 24, 0.72);
+  color: #99e9ff !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* ---------- Outer page framing ---------- */
 .theme-intro {
-  display: grid;
-  grid-template-columns: minmax(240px, 0.8fr) minmax(420px, 1.2fr);
-  gap: 1.2rem;
-  align-items: center;
-  padding: 0.95rem 1.2rem !important;
-  border-radius: 20px 6px 20px 6px !important;
-  border-color: rgba(91, 205, 255, 0.2) !important;
-  background: linear-gradient(110deg, rgba(6, 20, 34, 0.86), rgba(10, 17, 38, 0.78)) !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(520px, 1.2fr) !important;
+  gap: 1rem !important;
+  align-items: center !important;
+  margin: 0 0 1rem !important;
+  padding: 0.72rem 0.95rem !important;
+  border: 0 !important;
+  border-left: 3px solid rgba(114, 232, 255, 0.52) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(30, 96, 133, 0.13), rgba(7, 16, 30, 0.5) 55%, transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 
 .theme-intro .tagline {
-  max-width: none;
-  font-size: 0.93rem;
+  max-width: none !important;
+  font-size: 0.9rem !important;
 }
 
 .theme-intro .priority {
   justify-content: flex-end;
-  margin: 0;
+  margin: 0 !important;
 }
 
 .theme-intro .chip {
-  border-radius: 7px 14px 7px 14px;
-  border-color: rgba(91, 205, 255, 0.18);
-  background: rgba(55, 114, 205, 0.08);
+  border-radius: 2px 9px 2px 9px !important;
+  border-color: rgba(114, 232, 255, 0.14) !important;
+  background: rgba(33, 108, 166, 0.055) !important;
 }
 
 .roster-account-bar {
   display: grid !important;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(5, max-content);
+  grid-template-columns: minmax(250px, 1.35fr) repeat(5, max-content) !important;
   align-items: end !important;
-  gap: 0.55rem !important;
-  padding: 0.85rem 0.95rem !important;
-  border-radius: 18px 5px 18px 5px !important;
-  border-color: rgba(91, 205, 255, 0.24) !important;
+  gap: 0.5rem !important;
+  margin: 0.6rem 0 0.85rem !important;
+  padding: 0.75rem 0.8rem !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(114, 232, 255, 0.16) !important;
+  border-bottom: 1px solid rgba(114, 232, 255, 0.16) !important;
+  border-radius: 0 !important;
   background:
-    linear-gradient(105deg, rgba(8, 26, 43, 0.92), rgba(9, 17, 34, 0.88)),
-    radial-gradient(circle at 92% 20%, rgba(96, 92, 255, 0.16), transparent 30%) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2) !important;
+    linear-gradient(90deg, rgba(32, 105, 152, 0.12), rgba(8, 17, 32, 0.78) 36%, rgba(63, 60, 152, 0.08)) !important;
+  box-shadow: none !important;
 }
 
-.roster-account-bar .btn {
-  min-height: 39px;
+.roster-account-bar .btn,
+.roster-account-bar select {
+  border-radius: 4px !important;
 }
 
+/* Keep the roster/member/card/result internals familiar, only alter their outer section framing. */
 .gallery-panel,
 .captain-panel,
 .favorites-panel,
+.roster-panel,
 .stack > .panel:not(#optimize-results) {
-  border-radius: 22px 7px 22px 7px !important;
-  border-color: rgba(91, 205, 255, 0.18) !important;
-  background: linear-gradient(145deg, rgba(5, 18, 31, 0.9), rgba(8, 14, 29, 0.84)) !important;
+  position: relative;
+  border-radius: 0 !important;
+  border-color: rgba(114, 232, 255, 0.14) !important;
+  background: linear-gradient(145deg, rgba(5, 16, 29, 0.91), rgba(6, 11, 24, 0.86)) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22) !important;
 }
 
-/* Explanations added around the preserved result UI. */
+.gallery-panel::before,
+.captain-panel::before,
+.favorites-panel::before,
+.roster-panel::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: 56px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--deck-cyan), var(--deck-indigo), transparent);
+  box-shadow: 0 0 12px rgba(82, 167, 255, 0.25);
+}
+
 .roster-pr-context,
 .team-order-note {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.75rem;
-  align-items: start;
-  margin: 0.75rem 0;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid rgba(91, 205, 255, 0.18);
-  border-radius: 12px;
-  background: linear-gradient(110deg, rgba(50, 124, 201, 0.09), rgba(93, 95, 255, 0.055));
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 0.7rem !important;
+  align-items: start !important;
+  margin: 0.7rem 0 !important;
+  padding: 0.65rem 0.8rem !important;
+  border: 0 !important;
+  border-left: 3px solid rgba(114, 232, 255, 0.45) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(46, 126, 175, 0.1), transparent) !important;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.85rem;
 }
 
 .roster-pr-context strong,
 .team-order-note strong {
-  color: #a8ecff;
+  color: #a9ecff !important;
   white-space: nowrap;
-}
-
-.team-order-note {
-  margin-top: 0.9rem;
-  border-color: rgba(99, 238, 226, 0.2);
-  background: rgba(40, 156, 161, 0.055);
 }
 
 .slot-order-text {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
   min-height: 1.45rem;
-  font-weight: 800;
-  color: #dff9ff;
+  color: #e5fbff;
+  font-weight: 900;
 }
 
 .favorite-member {
@@ -326,63 +485,95 @@ body::after {
   width: 23px;
   height: 23px;
   border: 1px solid rgba(117, 223, 255, 0.58);
-  border-radius: 50%;
-  background: rgba(3, 12, 26, 0.86);
+  border-radius: 3px;
+  background: rgba(3, 12, 26, 0.9);
   color: #dcf9ff;
   font-size: 0.72rem;
   font-weight: 900;
-  box-shadow: 0 0 12px rgba(82, 167, 255, 0.22);
 }
 
-@media (max-width: 980px) {
+.site-footer {
+  margin-top: 2rem !important;
+  padding-top: 0.8rem !important;
+  border-top: 1px solid rgba(114, 232, 255, 0.12);
+}
+
+@media (max-width: 1080px) {
   .app {
-    width: min(100% - 1rem, 1400px) !important;
+    width: min(100% - 1rem, 1480px) !important;
   }
 
-  .theme-intro {
-    grid-template-columns: 1fr;
-  }
-
-  .theme-intro .priority {
-    justify-content: flex-start;
+  .hero-main {
+    grid-template-columns: 220px minmax(360px, 1fr) 150px !important;
   }
 
   .roster-account-bar {
     grid-template-columns: minmax(220px, 1fr) repeat(2, max-content) !important;
   }
+
+  .theme-intro {
+    grid-template-columns: 1fr !important;
+  }
+
+  .theme-intro .priority {
+    justify-content: flex-start;
+  }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 760px) {
+  .app::before {
+    display: none;
+  }
+
   .hero {
-    min-height: 0;
-    padding: 4rem 1rem 1rem !important;
-    border-radius: 20px 7px 20px 7px !important;
+    padding-top: 3.8rem !important;
+  }
+
+  .hero::after {
+    right: 6px !important;
+    top: 8px !important;
+    font-size: 50px !important;
   }
 
   .hero-main {
     grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    gap: 0.8rem !important;
   }
 
+  .hero-kicker,
+  .brand,
+  .brand-sub,
+  .theme-tabs,
   .hero-mascot {
-    justify-self: start;
-    min-width: 140px;
+    grid-column: 1 !important;
+    grid-row: auto !important;
   }
 
-  .hero-portrait {
-    width: 102px !important;
-    height: 102px !important;
+  .brand {
+    min-height: 76px;
   }
 
   .theme-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: auto !important;
   }
 
-  .theme-tab:nth-child(2) {
-    border-right: 0 !important;
+  .theme-tab {
+    padding-left: 3.4rem !important;
   }
 
-  .theme-tab:nth-child(-n + 2) {
-    border-bottom: 1px solid rgba(91, 205, 255, 0.12) !important;
+  .hero-mascot {
+    justify-self: stretch !important;
+    grid-template-columns: auto 1fr;
+    place-content: center start;
+    justify-items: start;
+    min-height: 126px;
+  }
+
+  .hero-portrait {
+    width: 92px !important;
+    height: 92px !important;
   }
 
   .roster-account-bar {
@@ -395,7 +586,7 @@ body::after {
 
   .roster-pr-context,
   .team-order-note {
-    grid-template-columns: 1fr;
-    gap: 0.25rem;
+    grid-template-columns: 1fr !important;
+    gap: 0.22rem !important;
   }
 }
