@@ -137,6 +137,7 @@ export default function App() {
   const [resultTrack, setResultTrack] = useState<ResultTrack>("overall");
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [viewingPrBaseline, setViewingPrBaseline] = useState(false);
+  const [commentBoardOpen, setCommentBoardOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [cardsCompact, setCardsCompact] = useState(false);
@@ -734,9 +735,18 @@ export default function App() {
           <div className="hero-mascot">
             <Portrait member="常闇トワ" size="lg" className="hero-portrait" />
             <span className="hero-mascot-caption">常闇トワ</span>
+            <button
+              type="button"
+              className="hero-comment-btn"
+              onClick={() => setCommentBoardOpen(true)}
+            >
+              {t.commentBoardTitle}
+            </button>
           </div>
         </div>
       </header>
+
+      <CommentBoard open={commentBoardOpen} onClose={() => setCommentBoardOpen(false)} />
 
       {theme === "gallery" && (
         <section className="panel gallery-panel">
@@ -1535,8 +1545,6 @@ export default function App() {
       </button>
         </>
       )}
-
-      <CommentBoard />
 
       <footer className="site-footer">
         <span>{t.footer}</span>

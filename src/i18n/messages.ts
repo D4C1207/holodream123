@@ -186,6 +186,7 @@ export type Messages = {
   commentBoardUnavailable: string;
   commentBoardAnonymous: string;
   commentBoardRefresh: string;
+  commentBoardClose: string;
 };
 
 const zh: Messages = {
@@ -373,6 +374,7 @@ const zh: Messages = {
   commentBoardUnavailable: "留言板尚未設定（需 Supabase）。",
   commentBoardAnonymous: "匿名",
   commentBoardRefresh: "重新整理",
+  commentBoardClose: "關閉",
 };
 
 const en: Messages = {
@@ -565,6 +567,7 @@ const en: Messages = {
   commentBoardUnavailable: "Guestbook not configured (Supabase required).",
   commentBoardAnonymous: "Anonymous",
   commentBoardRefresh: "Refresh",
+  commentBoardClose: "Close",
 };
 
 const ja: Messages = {
@@ -757,6 +760,7 @@ const ja: Messages = {
   commentBoardUnavailable: "掲示板は未設定です（Supabase が必要）。",
   commentBoardAnonymous: "匿名",
   commentBoardRefresh: "更新",
+  commentBoardClose: "閉じる",
 };
 
 export const MESSAGES: Record<Locale, Messages> = { zh, en, ja };
