@@ -1,0 +1,217 @@
+import type { Locale } from "../i18n/messages";
+import type { TeamEvaluation } from "../types";
+
+export type TeamDecisionMetrics = {
+  d4cIndex: number;
+  effectiveStats: number;
+  scoreSupportEquivalent: number;
+  avgScoreUp: number;
+  coverage: number;
+  passiveSatisfied: number;
+  passiveTotal: number;
+  costumeSatisfied: boolean;
+  buffGain: number;
+};
+
+export type TeamMetricDiff = {
+  d4cIndex: number;
+  effectiveStats: number;
+  scoreSupportEquivalent: number;
+  avgScoreUp: number;
+  coveragePctPoint: number;
+  passiveSatisfied: number;
+  buffGain: number;
+};
+
+export function teamDecisionKey(ev: TeamEvaluation): string {
+  return `${ev.costume.id}|${ev.leaderIndex}|${ev.cards.map((card) => card.id).join(",")}`;
+}
+
+/**
+ * D4C 實戰指數（非官方估算）：
+ * (加成後三圍 + 分數支援加權值) × (1 + 全曲平均有效 Score UP / 100)
+ *
+ * Unlike PR, this uses a fixed formula and never normalizes against the current
+ * candidate pool, so scores from different inventories can be compared when
+ * using the same song-length assumptions.
+ */
+export function d4cBattleIndex(ev: TeamEvaluation): number {
+  const scoreSupportEquivalent = Math.max(0, ev.scoreSupportWeighted);
+  const scoreUpMultiplier = 1 + Math.max(0, ev.avgScoreUp) / 100;
+  return Math.round((ev.effectiveStatTotal + scoreSupportEquivalent) * scoreUpMultiplier);
+}
+
+export function teamDecisionMetrics(ev: TeamEvaluation): TeamDecisionMetrics {
+  return {
+    d4cIndex: d4cBattleIndex(ev),
+    effectiveStats: ev.effectiveStatTotal,
+    scoreSupportEquivalent: ev.scoreSupportWeighted,
+    avgScoreUp: ev.avgScoreUp,
+    coverage: ev.coverage,
+    passiveSatisfied: ev.passiveDetails.filter((item) => item.satisfied).length,
+    passiveTotal: ev.passiveDetails.length,
+    costumeSatisfied: ev.costumeSatisfied,
+    buffGain: ev.effectiveStatTotal - ev.baseStatTotal,
+  };
+}
+
+export function compareDecisionMetrics(
+  a: TeamEvaluation,
+  b: TeamEvaluation,
+): TeamMetricDiff {
+  const am = teamDecisionMetrics(a);
+  const bm = teamDecisionMetrics(b);
+  return {
+    d4cIndex: am.d4cIndex - bm.d4cIndex,
+    effectiveStats: am.effectiveStats - bm.effectiveStats,
+    scoreSupportEquivalent: am.scoreSupportEquivalent - bm.scoreSupportEquivalent,
+    avgScoreUp: am.avgScoreUp - bm.avgScoreUp,
+    coveragePctPoint: (am.coverage - bm.coverage) * 100,
+    passiveSatisfied: am.passiveSatisfied - bm.passiveSatisfied,
+    buffGain: am.buffGain - bm.buffGain,
+  };
+}
+
+type Reason = { weight: number; text: string };
+
+function signedNumber(value: number, digits = 0): string {
+  const fixed = value.toFixed(digits);
+  return `${value > 0 ? "+" : ""}${fixed}`;
+}
+
+function localized(
+  locale: Locale,
+  zh: string,
+  en: string,
+  ja: string,
+): string {
+  return locale === "en" ? en : locale === "ja" ? ja : zh;
+}
+
+export function explainTeamDecision(
+  selected: TeamEvaluation,
+  reference: TeamEvaluation | null,
+  locale: Locale,
+): { headline: string; reasons: string[] } {
+  const sm = teamDecisionMetrics(selected);
+  const reasons: Reason[] = [];
+
+  if (!reference) {
+    reasons.push({
+      weight: Math.max(1, sm.buffGain / Math.max(1, selected.baseStatTotal)),
+      text: localized(
+        locale,
+        `衣裝／被動生效後，三圍由 ${selected.baseStatTotal.toLocaleString()} 提升到 ${selected.effectiveStatTotal.toLocaleString()}（+${sm.buffGain.toLocaleString()}）。`,
+        `Costume/passive effects raise stats from ${selected.baseStatTotal.toLocaleString()} to ${selected.effectiveStatTotal.toLocaleString()} (+${sm.buffGain.toLocaleString()}).`,
+        `衣装／パッシブ適用後、総合パラメータが ${selected.baseStatTotal.toLocaleString()} から ${selected.effectiveStatTotal.toLocaleString()}（+${sm.buffGain.toLocaleString()}）へ上昇します。`,
+      ),
+    });
+    reasons.push({
+      weight: sm.avgScoreUp / 100,
+      text: localized(
+        locale,
+        `全曲平均有效 Score UP 為 ${sm.avgScoreUp.toFixed(1)}%，技能覆蓋率 ${(sm.coverage * 100).toFixed(1)}%。`,
+        `Full-song average effective Score UP is ${sm.avgScoreUp.toFixed(1)}% with ${(sm.coverage * 100).toFixed(1)}% coverage.`,
+        `全曲平均の有効 Score UP は ${sm.avgScoreUp.toFixed(1)}%、カバー率は ${(sm.coverage * 100).toFixed(1)}% です。`,
+      ),
+    });
+  } else {
+    const diff = compareDecisionMetrics(selected, reference);
+    const statPct = diff.effectiveStats / Math.max(1, reference.effectiveStatTotal);
+    if (Math.abs(diff.effectiveStats) >= 1) {
+      reasons.push({
+        weight: Math.abs(statPct) * 12,
+        text: localized(
+          locale,
+          `加成後三圍比比較隊伍 ${diff.effectiveStats >= 0 ? "高" : "低"} ${Math.abs(diff.effectiveStats).toLocaleString()}。`,
+          `Buffed stats are ${Math.abs(diff.effectiveStats).toLocaleString()} ${diff.effectiveStats >= 0 ? "higher" : "lower"} than the comparison team.`,
+          `総合パラメータは比較編成より ${Math.abs(diff.effectiveStats).toLocaleString()} ${diff.effectiveStats >= 0 ? "高い" : "低い"}です。`,
+        ),
+      });
+    }
+    if (Math.abs(diff.avgScoreUp) >= 0.05) {
+      reasons.push({
+        weight: Math.abs(diff.avgScoreUp) / 2,
+        text: localized(
+          locale,
+          `全曲平均 Score UP ${diff.avgScoreUp >= 0 ? "高" : "低"} ${Math.abs(diff.avgScoreUp).toFixed(1)} 個百分點。`,
+          `Full-song average Score UP is ${Math.abs(diff.avgScoreUp).toFixed(1)} percentage points ${diff.avgScoreUp >= 0 ? "higher" : "lower"}.`,
+          `全曲平均 Score UP は ${Math.abs(diff.avgScoreUp).toFixed(1)} ポイント ${diff.avgScoreUp >= 0 ? "高い" : "低い"}です。`,
+        ),
+      });
+    }
+    if (Math.abs(diff.coveragePctPoint) >= 0.05) {
+      reasons.push({
+        weight: Math.abs(diff.coveragePctPoint) / 5,
+        text: localized(
+          locale,
+          `技能覆蓋率 ${diff.coveragePctPoint >= 0 ? "高" : "低"} ${Math.abs(diff.coveragePctPoint).toFixed(1)} 個百分點。`,
+          `Skill coverage is ${Math.abs(diff.coveragePctPoint).toFixed(1)} percentage points ${diff.coveragePctPoint >= 0 ? "higher" : "lower"}.`,
+          `スキルカバー率は ${Math.abs(diff.coveragePctPoint).toFixed(1)} ポイント ${diff.coveragePctPoint >= 0 ? "高い" : "低い"}です。`,
+        ),
+      });
+    }
+    if (diff.passiveSatisfied !== 0) {
+      reasons.push({
+        weight: Math.abs(diff.passiveSatisfied) * 1.5,
+        text: localized(
+          locale,
+          `發動被動數量 ${diff.passiveSatisfied > 0 ? "多" : "少"} ${Math.abs(diff.passiveSatisfied)} 個（本隊 ${sm.passiveSatisfied}/${sm.passiveTotal}）。`,
+          `${Math.abs(diff.passiveSatisfied)} ${diff.passiveSatisfied > 0 ? "more" : "fewer"} passive skills activate (${sm.passiveSatisfied}/${sm.passiveTotal} on this team).`,
+          `発動パッシブ数が ${Math.abs(diff.passiveSatisfied)} 個 ${diff.passiveSatisfied > 0 ? "多い" : "少ない"}です（この編成は ${sm.passiveSatisfied}/${sm.passiveTotal}）。`,
+        ),
+      });
+    }
+    if (Math.abs(diff.scoreSupportEquivalent) >= 1) {
+      reasons.push({
+        weight: Math.abs(diff.scoreSupportEquivalent) / 5000,
+        text: localized(
+          locale,
+          `分數支援加權值差異 ${signedNumber(diff.scoreSupportEquivalent, 0)}。`,
+          `Score-support equivalent differs by ${signedNumber(diff.scoreSupportEquivalent, 0)}.`,
+          `スコアサポート加重値の差は ${signedNumber(diff.scoreSupportEquivalent, 0)} です。`,
+        ),
+      });
+    }
+  }
+
+  if (selected.costumeSatisfied) {
+    reasons.push({
+      weight: 1.1,
+      text: localized(
+        locale,
+        `隊長衣裝「${selected.costume.costumeName}」條件已滿足。`,
+        `Captain costume “${selected.costume.costumeName}” is active.`,
+        `隊長衣装「${selected.costume.costumeName}」の条件を満たしています。`,
+      ),
+    });
+  }
+  if (selected.allPassivesSatisfied) {
+    reasons.push({
+      weight: 1,
+      text: localized(
+        locale,
+        `全員被動 ${sm.passiveSatisfied}/${sm.passiveTotal} 全部發動。`,
+        `All passives are active (${sm.passiveSatisfied}/${sm.passiveTotal}).`,
+        `全員のパッシブが発動しています（${sm.passiveSatisfied}/${sm.passiveTotal}）。`,
+      ),
+    });
+  }
+
+  reasons.sort((a, b) => b.weight - a.weight);
+  const topReasons = reasons.slice(0, 4).map((item) => item.text);
+  const headline = reference
+    ? localized(
+        locale,
+        `D4C 實戰指數 ${d4cBattleIndex(selected).toLocaleString()}，相較比較隊伍 ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)}。`,
+        `D4C Battle Index ${d4cBattleIndex(selected).toLocaleString()}, ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} versus the comparison team.`,
+        `D4C 実戦指数 ${d4cBattleIndex(selected).toLocaleString()}、比較編成との差は ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} です。`,
+      )
+    : localized(
+        locale,
+        `D4C 實戰指數 ${d4cBattleIndex(selected).toLocaleString()}。`,
+        `D4C Battle Index ${d4cBattleIndex(selected).toLocaleString()}.`,
+        `D4C 実戦指数 ${d4cBattleIndex(selected).toLocaleString()}。`,
+      );
+  return { headline, reasons: topReasons };
+}
