@@ -1,12 +1,15 @@
--- Shared PR9999 baseline cache for holodream (Supabase free tier).
+-- Shared PR top-8 cache for holodream (Supabase free tier).
 -- Run once in Supabase SQL editor, then set GitHub repo secrets:
 --   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+--
+-- Existing projects: also run scripts/supabase-pr-baselines-migrate-top8.sql
 
 create table if not exists public.pr_baselines (
   cache_key text primary key,
   costume_id text not null,
   song_length integer not null,
   pool_card_count integer not null,
+  teams jsonb not null default '[]'::jsonb,
   leader_index integer not null,
   card_ids jsonb not null,
   effective_stat_total numeric not null,
@@ -14,6 +17,10 @@ create table if not exists public.pr_baselines (
   avg_score_up numeric not null,
   updated_at timestamptz not null default now()
 );
+
+-- Migration for tables created before top-8 support
+alter table public.pr_baselines
+  add column if not exists teams jsonb not null default '[]'::jsonb;
 
 create index if not exists pr_baselines_costume_idx
   on public.pr_baselines (costume_id, song_length, pool_card_count);

@@ -60,6 +60,26 @@ export interface OptimizeResult {
   elapsedMs: number;
 }
 
+/** Build optimizer UI result from cached top-N teams (skips search). */
+export function buildOptimizeResultFromCache(byOverall: TeamEvaluation[]): OptimizeResult {
+  const top = byOverall.slice(0, 8);
+  const byStats = [...top].sort((a, b) => b.effectiveStatTotal - a.effectiveStatTotal);
+  const byCoverage = [...top].sort((a, b) => b.coverage - a.coverage);
+  const byAvgScoreUp = [...top].sort((a, b) => b.avgScoreUp - a.avgScoreUp);
+  const baselineTeam = top.find((t) => t.powerRating === 9999) ?? top[0] ?? null;
+  return {
+    best: top[0] ?? null,
+    top,
+    byOverall: top,
+    byStats: byStats.slice(0, 8),
+    byCoverage: byCoverage.slice(0, 8),
+    byAvgScoreUp: byAvgScoreUp.slice(0, 8),
+    baselineTeam,
+    searched: 0,
+    elapsedMs: 0,
+  };
+}
+
 /** Active Score UP fingerprint — identical timing/potency = wasted overlap. */
 export function activeSkillSignature(card: Card): string {
   const a = card.active;
@@ -165,7 +185,7 @@ function applyMemberPool(byMember: Map<string, Card[]>, memberPool?: string[]) {
 
 function hydratePrBaseline(
   data: GameData,
-  entry: ReturnType<typeof getPrBaselineEntry>,
+  entry: { costumeId: string; leaderIndex: number; cardIds: string[] } | null,
   songLength: number,
 ): TeamEvaluation | null {
   if (!entry) return null;
@@ -180,6 +200,29 @@ function hydratePrBaseline(
   if (cards.length !== 5) return null;
   if (hasDuplicateMembers(cards)) return null;
   return evaluateTeam(cards, entry.leaderIndex, costume, data, songLength);
+}
+
+/** Restore cached top-N teams for one captain costume. */
+export function hydratePrCostumeTop8(
+  data: GameData,
+  entries: Array<{ leaderIndex: number; cardIds: string[]; powerRating?: number }>,
+  costumeId: string,
+  songLength: number,
+): TeamEvaluation[] {
+  const out: TeamEvaluation[] = [];
+  for (const entry of entries) {
+    const ev = hydratePrBaseline(
+      data,
+      { costumeId, leaderIndex: entry.leaderIndex, cardIds: entry.cardIds },
+      songLength,
+    );
+    if (!ev) continue;
+    out.push({
+      ...ev,
+      powerRating: entry.powerRating ?? ev.powerRating,
+    });
+  }
+  return out;
 }
 
 function computePrBaselineTeam(data: GameData, options: OptimizeOptions): TeamEvaluation | null {

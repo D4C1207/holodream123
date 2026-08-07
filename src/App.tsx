@@ -22,10 +22,13 @@ import {
 } from "./lib/groups";
 import { displayName, listName, matchesQuery } from "./lib/names";
 import { captainCostumesForMember } from "./lib/costumes";
-import { optimizeTeamFast } from "./lib/optimizer";
+import { optimizeTeamFast, buildOptimizeResultFromCache, hydratePrCostumeTop8 } from "./lib/optimizer";
 import {
   countOptimizerPoolCards,
+  getPrCostumeTop8,
+  isPrCostumeFullyCached,
   persistSharedPrBaseline,
+  SHARED_TOP_N,
   syncSharedPrBaseline,
 } from "./lib/prBaselineStore";
 import {
@@ -448,14 +451,55 @@ export default function App() {
     setSelectedIdx(0);
   }
 
-  function poolCardCountForOwned(ownedCardIds: Set<string>): number {
-    return countOptimizerPoolCards(data.cards.filter((c) => ownedCardIds.has(c.id)));
-  }
+  const fullPoolCardCount = useMemo(
+    () => countOptimizerPoolCards(data.cards),
+    [],
+  );
 
-  async function prepareAndRunOptimize(ownedCardIds: Set<string>, options: Omit<Parameters<typeof optimizeTeamFast>[1], "ownedCardIds">) {
-    const poolCardCount = poolCardCountForOwned(ownedCardIds);
-    if (options.fixedCostumeId) {
-      await syncSharedPrBaseline(options.fixedCostumeId, SONG_LENGTH, poolCardCount);
+  async function prepareAndRunOptimize(
+    ownedCardIds: Set<string>,
+    options: Omit<Parameters<typeof optimizeTeamFast>[1], "ownedCardIds">,
+    sharePr9999Baseline = false,
+  ) {
+    const costumeId = options.fixedCostumeId;
+    const noWantedMembers = !options.fixedMembers?.length;
+    let prFullyCached = false;
+
+    if (sharePr9999Baseline && costumeId) {
+      prFullyCached = isPrCostumeFullyCached(costumeId, SONG_LENGTH, fullPoolCardCount);
+      if (!prFullyCached) {
+        await syncSharedPrBaseline(costumeId, SONG_LENGTH, fullPoolCardCount);
+        prFullyCached = isPrCostumeFullyCached(costumeId, SONG_LENGTH, fullPoolCardCount);
+      }
+    }
+
+    const finish = (out: ReturnType<typeof optimizeTeamFast>) => {
+      setResult(out);
+      setResultTrack("overall");
+      setSelectedIdx(0);
+      setBusy(false);
+      requestAnimationFrame(() => {
+        document.getElementById("optimize-results")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    };
+
+    if (sharePr9999Baseline && costumeId && noWantedMembers && prFullyCached) {
+      const entries = getPrCostumeTop8(costumeId, SONG_LENGTH, fullPoolCardCount);
+      if (entries?.length) {
+        const hydrated = hydratePrCostumeTop8(data, entries, costumeId, SONG_LENGTH);
+        if (hydrated.length >= SHARED_TOP_N) {
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              finish(buildOptimizeResultFromCache(hydrated));
+              resolve();
+            }, 30);
+          });
+          return;
+        }
+      }
     }
 
     await new Promise<void>((resolve) => {
@@ -464,19 +508,20 @@ export default function App() {
           ...options,
           ownedCardIds,
         });
-        if (out.baselineTeam && options.fixedCostumeId) {
-          void persistSharedPrBaseline(out.baselineTeam, SONG_LENGTH, poolCardCount);
+        if (
+          sharePr9999Baseline &&
+          !prFullyCached &&
+          out.byOverall.length &&
+          costumeId
+        ) {
+          void persistSharedPrBaseline(
+            out.byOverall,
+            costumeId,
+            SONG_LENGTH,
+            fullPoolCardCount,
+          );
         }
-        setResult(out);
-        setResultTrack("overall");
-        setSelectedIdx(0);
-        setBusy(false);
-        requestAnimationFrame(() => {
-          document.getElementById("optimize-results")?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        });
+        finish(out);
         resolve();
       }, 30);
     });
@@ -493,16 +538,20 @@ export default function App() {
     }
 
     setBusy(true);
-    void prepareAndRunOptimize(allCardIds, {
-      ownedCostumeIds: allCostumeIds,
-      songLength: SONG_LENGTH,
-      fixedLeader: leaderMember,
-      fixedCostumeId: leaderCostumeId || null,
-      fixedMembers: wantedMembers,
-      preferredCardByMember: preferredCards,
-      maxResults: 8,
-      allowDuplicateSkills,
-    });
+    void prepareAndRunOptimize(
+      allCardIds,
+      {
+        ownedCostumeIds: allCostumeIds,
+        songLength: SONG_LENGTH,
+        fixedLeader: leaderMember,
+        fixedCostumeId: leaderCostumeId || null,
+        fixedMembers: wantedMembers,
+        preferredCardByMember: preferredCards,
+        maxResults: 8,
+        allowDuplicateSkills,
+      },
+      true,
+    );
   }
 
   function runRosterOptimize() {
@@ -522,16 +571,20 @@ export default function App() {
     }
 
     setBusy(true);
-    void prepareAndRunOptimize(rosterOwnedCardIdsForOptimize(), {
-      ownedCostumeIds: allCostumeIds,
-      songLength: SONG_LENGTH,
-      fixedLeader: leaderMember,
-      fixedCostumeId: leaderCostumeId || null,
-      fixedMembers: [],
-      memberPool: ownedRosterMembers,
-      maxResults: 8,
-      allowDuplicateSkills,
-    });
+    void prepareAndRunOptimize(
+      rosterOwnedCardIdsForOptimize(),
+      {
+        ownedCostumeIds: allCostumeIds,
+        songLength: SONG_LENGTH,
+        fixedLeader: leaderMember,
+        fixedCostumeId: leaderCostumeId || null,
+        fixedMembers: [],
+        memberPool: ownedRosterMembers,
+        maxResults: 8,
+        allowDuplicateSkills,
+      },
+      false,
+    );
   }
 
   const galleryFilterSummary = [
