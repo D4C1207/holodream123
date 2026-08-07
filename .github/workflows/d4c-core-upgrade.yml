@@ -35,7 +35,7 @@ jobs:
           cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13a .d4c-patch/13b1 .d4c-patch/13b2 .d4c-patch/14 | base64 -d > /tmp/d4c-full.patch
           echo "5122831f0c724fabd08149bc2af355f8567066f47af5e210623946012784a5f9  /tmp/d4c-full.patch" | sha256sum -c -
 
-      - name: Apply core features deterministically
+      - name: Apply core features with safe fuzz
         shell: bash
         run: |
           python3 - <<'PY'
@@ -43,17 +43,16 @@ jobs:
           from difflib import SequenceMatcher
           import re
 
-          patch_lines = Path('/tmp/d4c-full.patch').read_text(encoding='utf-8').splitlines(keepends=True)
-
+          patch = Path('/tmp/d4c-full.patch').read_text(encoding='utf-8').splitlines(keepends=True)
           files = []
           current = None
           i = 0
-          while i < len(patch_lines):
-              line = patch_lines[i]
+          while i < len(patch):
+              line = patch[i]
               if line.startswith('diff --git '):
                   m = re.match(r'diff --git a/(.*?) b/(.*?)\n?$', line)
                   if not m:
-                      raise SystemExit(f'Bad diff header: {line.rstrip()}')
+                      raise SystemExit(f'bad diff header: {line.rstrip()}')
                   current = {'path': m.group(2), 'hunks': []}
                   files.append(current)
                   i += 1
@@ -61,12 +60,12 @@ jobs:
               if current and line.startswith('@@ '):
                   m = re.match(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@', line)
                   if not m:
-                      raise SystemExit(f'Bad hunk header: {line.rstrip()}')
+                      raise SystemExit(f'bad hunk header: {line.rstrip()}')
                   old_start = int(m.group(1))
                   i += 1
-                  old, new = [], []
-                  while i < len(patch_lines):
-                      body = patch_lines[i]
+                  ops = []
+                  while i < len(patch):
+                      body = patch[i]
                       if body.startswith('diff --git ') or body.startswith('@@ '):
                           break
                       if body.startswith('\\ No newline at end of file'):
@@ -76,81 +75,98 @@ jobs:
                           break
                       if not body or body[0] not in ' +-':
                           break
-                      payload = body[1:]
-                      if body[0] in ' -':
-                          old.append(payload)
-                      if body[0] in ' +':
-                          new.append(payload)
+                      ops.append((body[0], body[1:]))
                       i += 1
-                  current['hunks'].append((old_start, old, new))
+                  current['hunks'].append((old_start, ops))
                   continue
               i += 1
 
-          # rosterProfiles.ts is already committed directly and is intentionally skipped here.
           files = [f for f in files if f['path'] != 'src/lib/rosterProfiles.ts']
+
+          def old_new(ops):
+              old = [text for kind, text in ops if kind in ' -']
+              new = [text for kind, text in ops if kind in ' +']
+              return old, new
+
+          def find_matches(haystack, needle):
+              if not needle:
+                  return []
+              limit = len(haystack) - len(needle)
+              return [p for p in range(limit + 1) if haystack[p:p + len(needle)] == needle]
+
+          def fuzz_variants(ops, max_fuzz=3):
+              lead_context = 0
+              while lead_context < len(ops) and ops[lead_context][0] == ' ':
+                  lead_context += 1
+              trail_context = 0
+              while trail_context < len(ops) and ops[len(ops)-1-trail_context][0] == ' ':
+                  trail_context += 1
+              variants = []
+              for total in range(0, max_fuzz * 2 + 1):
+                  for lead in range(0, min(max_fuzz, lead_context) + 1):
+                      trail = total - lead
+                      if trail < 0 or trail > min(max_fuzz, trail_context):
+                          continue
+                      end = len(ops) - trail if trail else len(ops)
+                      trimmed = ops[lead:end]
+                      if trimmed:
+                          variants.append((lead, trail, trimmed))
+              return variants
 
           for fp in files:
               path = Path(fp['path'])
-              if not path.exists():
-                  raise SystemExit(f'{path}: target missing')
               original = path.read_text(encoding='utf-8').splitlines(keepends=True)
               edits = []
-
-              for hnum, (old_start, old, new) in enumerate(fp['hunks'], 1):
-                  if not old:
-                      raise SystemExit(f'{path}: unexpected empty old hunk {hnum}')
-
-                  matches = []
-                  max_start = len(original) - len(old)
-                  for pos in range(max_start + 1):
-                      if original[pos:pos + len(old)] == old:
-                          matches.append(pos)
-                  if not matches:
-                      # If this exact transformation is already present, no edit is needed.
-                      new_matches = []
-                      max_new = len(original) - len(new)
-                      for pos in range(max_new + 1):
-                          if original[pos:pos + len(new)] == new:
-                              new_matches.append(pos)
-                      if new_matches:
+              for hnum, (old_start, ops) in enumerate(fp['hunks'], 1):
+                  chosen = None
+                  for lead, trail, trimmed in fuzz_variants(ops):
+                      old, new = old_new(trimmed)
+                      matches = find_matches(original, old)
+                      if matches:
+                          expected = max(0, old_start - 1 + lead)
+                          pos = min(matches, key=lambda p: abs(p - expected))
+                          chosen = (pos, old, new, lead, trail)
+                          break
+                  if chosen is None:
+                      # Idempotency: allow a hunk already present, using the same safe fuzz rule.
+                      already = False
+                      for lead, trail, trimmed in fuzz_variants(ops):
+                          _, new = old_new(trimmed)
+                          if new and find_matches(original, new):
+                              already = True
+                              break
+                      if already:
                           print(f'{path}: hunk {hnum} already present')
                           continue
-                      raise SystemExit(f'{path}: source block for hunk {hnum} not found')
+                      raise SystemExit(f'{path}: hunk {hnum} not found even with safe fuzz')
 
-                  expected = max(0, old_start - 1)
-                  pos = min(matches, key=lambda p: abs(p - expected))
-
-                  matcher = SequenceMatcher(a=old, b=new, autojunk=False)
-                  for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+                  pos, old, new, lead, trail = chosen
+                  if lead or trail:
+                      print(f'{path}: hunk {hnum} matched with fuzz lead={lead} trail={trail}')
+                  sm = SequenceMatcher(a=old, b=new, autojunk=False)
+                  for tag, i1, i2, j1, j2 in sm.get_opcodes():
                       if tag == 'equal':
                           continue
                       edits.append((pos + i1, pos + i2, tuple(new[j1:j2]), hnum))
 
-              # Deduplicate identical edits produced by overlapping hunk context.
-              dedup = {}
+              # Deduplicate actual edits. Context-only differences never become edits.
+              unique = {}
               for start, end, repl, hnum in edits:
-                  key = (start, end, repl)
-                  dedup[key] = min(hnum, dedup.get(key, hnum))
-              edits = [(s, e, list(r), h) for (s, e, r), h in dedup.items()]
-
-              # Reject only actual conflicting edits; shared context is harmless.
+                  unique[(start, end, repl)] = min(hnum, unique.get((start, end, repl), hnum))
+              edits = [(s, e, list(r), h) for (s, e, r), h in unique.items()]
               ordered = sorted(edits, key=lambda x: (x[0], x[1]))
-              for a, b in zip(ordered, ordered[1:]):
-                  a_start, a_end, a_repl, a_h = a
-                  b_start, b_end, b_repl, b_h = b
-                  overlap = b_start < a_end
-                  same_insert = a_start == a_end == b_start == b_end
-                  if overlap or same_insert:
-                      if not (a_start == b_start and a_end == b_end and a_repl == b_repl):
-                          raise SystemExit(
-                              f'{path}: conflicting edits from hunks {a_h} and {b_h} at {a_start}:{a_end}/{b_start}:{b_end}'
-                          )
+              for left, right in zip(ordered, ordered[1:]):
+                  ls, le, lr, lh = left
+                  rs, re_, rr, rh = right
+                  if rs < le or (ls == le == rs == re_):
+                      if not (ls == rs and le == re_ and lr == rr):
+                          raise SystemExit(f'{path}: conflicting actual edits from hunks {lh} and {rh}')
 
-              text = original[:]
-              for start, end, repl, hnum in sorted(edits, key=lambda x: (x[0], x[1]), reverse=True):
-                  text[start:end] = repl
-              path.write_text(''.join(text), encoding='utf-8')
-              print(f'{path}: applied {len(edits)} actual edits from {len(fp["hunks"])} hunks')
+              output = original[:]
+              for start, end, repl, _ in sorted(edits, key=lambda x: (x[0], x[1]), reverse=True):
+                  output[start:end] = repl
+              path.write_text(''.join(output), encoding='utf-8')
+              print(f'{path}: applied {len(edits)} actual edits')
           PY
 
           test -f src/lib/rosterProfiles.ts
