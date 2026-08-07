@@ -1,0 +1,59 @@
+name: Apply D4C Suisei layout refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-d4c-layout-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply layout notes and Suisei mascot
+        run: python3 .github/scripts/apply_layout_notes.py
+
+      - name: Verify markers
+        shell: bash
+        run: |
+          grep -q 'Portrait member="星街彗星"' src/App.tsx
+          grep -q 'roster-pr-context' src/App.tsx
+          grep -q 'team-order-note' src/App.tsx
+          grep -q 'favorite-slot-number' src/App.tsx
+          grep -q 'd4c-layout-v2.css' src/main.tsx
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build verification
+        env:
+          VITE_BASE: /holodream123/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified layout refresh
+        shell: bash
+        run: |
+          git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
+          rm -f .github/scripts/apply_layout_notes.py
+          rm -f .github/workflows/apply-d4c-layout-v2.yml
+          git config user.name 'D4C1207'
+          git config user.email 's1113708@mail.yzu.edu.tw'
+          git add -A
+          git commit -m 'Refresh D4C layout and add Suisei mascot'
+          git push origin HEAD:main
