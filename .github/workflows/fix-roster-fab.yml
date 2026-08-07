@@ -1,0 +1,53 @@
+name: Fix roster FAB ownership
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-roster-fab.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply fix
+        run: python3 .github/scripts/fix_roster_fab.py
+
+      - name: Verify
+        shell: bash
+        run: |
+          test "$(grep -o 'rosterOwnedCostumeIdsForOptimize().size === 0' src/App.tsx | wc -l)" -ge 3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        env:
+          VITE_BASE: /holodream123/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit
+        shell: bash
+        run: |
+          git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
+          rm -f .github/workflows/fix-roster-fab.yml
+          rm -f .github/scripts/fix_roster_fab.py
+          git config user.name 'D4C1207'
+          git config user.email 's1113708@mail.yzu.edu.tw'
+          git add src/App.tsx .github/workflows/fix-roster-fab.yml .github/scripts/fix_roster_fab.py
+          git commit -m 'Fix roster costume availability button state'
+          git push origin HEAD:main
