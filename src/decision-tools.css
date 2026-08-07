@@ -1,0 +1,334 @@
+/* D4C decision-support UI. Core roster/card/result layouts are intentionally preserved. */
+
+.account-dashboard {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.5fr) repeat(4, minmax(115px, 0.7fr));
+  gap: 0.6rem;
+  margin: 0.8rem 0 0.9rem;
+}
+
+.account-dashboard-card {
+  min-height: 72px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(91, 205, 255, 0.16);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(7, 24, 40, 0.88), rgba(7, 14, 29, 0.8));
+  display: grid;
+  gap: 0.15rem;
+  align-content: center;
+}
+
+.account-dashboard-card.primary {
+  border-color: rgba(99, 238, 226, 0.28);
+  background:
+    linear-gradient(120deg, rgba(16, 65, 83, 0.36), rgba(10, 20, 40, 0.84)),
+    radial-gradient(circle at 85% 10%, rgba(103, 111, 255, 0.18), transparent 45%);
+}
+
+.account-dashboard-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.account-dashboard-value {
+  color: #eaffff;
+  font-size: 1.12rem;
+  font-weight: 850;
+}
+
+.account-dashboard-sub {
+  color: #8ecbd8;
+  font-size: 0.7rem;
+}
+
+.rule-guide {
+  margin: 0.75rem 0 1rem;
+  border: 1px solid rgba(91, 205, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(4, 17, 31, 0.62);
+  overflow: hidden;
+}
+
+.rule-guide summary {
+  cursor: pointer;
+  padding: 0.65rem 0.8rem;
+  color: #a9efff;
+  font-weight: 800;
+}
+
+.rule-guide-body {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0 0.8rem 0.8rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.rule-guide-body p {
+  margin: 0;
+}
+
+.rule-guide-body strong {
+  color: #dffaff;
+}
+
+.decision-score-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0.65rem 0 0.8rem;
+}
+
+.decision-score-card {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(91, 205, 255, 0.2);
+  border-radius: 14px 5px 14px 5px;
+  background: linear-gradient(125deg, rgba(14, 55, 78, 0.3), rgba(13, 18, 43, 0.76));
+}
+
+.decision-score-card .label {
+  display: block;
+  color: #96dce8;
+  font-size: 0.72rem;
+}
+
+.decision-score-card strong {
+  display: block;
+  margin-top: 0.05rem;
+  color: #f2ffff;
+  font-size: 1.25rem;
+}
+
+.decision-score-card small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.decision-explain {
+  margin: 0.75rem 0;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(99, 238, 226, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(110deg, rgba(16, 75, 80, 0.13), rgba(73, 80, 201, 0.08));
+}
+
+.decision-explain h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: #dffcff;
+}
+
+.decision-explain-headline {
+  margin: 0 0 0.55rem;
+  color: #a5ecf5;
+  font-size: 0.82rem;
+}
+
+.decision-reasons {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decision-reasons li {
+  position: relative;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.decision-reasons li::before {
+  content: "✦";
+  position: absolute;
+  left: 0;
+  color: #61dfff;
+}
+
+.compare-zone {
+  margin: 0.75rem 0;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid rgba(113, 115, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(9, 17, 37, 0.66);
+}
+
+.compare-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto minmax(180px, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.compare-toolbar strong {
+  color: #b2efff;
+}
+
+.compare-toolbar select {
+  width: 100%;
+  min-width: 0;
+}
+
+.compare-table {
+  width: 100%;
+  margin-top: 0.7rem;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 0.38rem 0.5rem;
+  border-top: 1px solid rgba(91, 205, 255, 0.1);
+  text-align: right;
+}
+
+.compare-table th:first-child,
+.compare-table td:first-child {
+  text-align: left;
+  color: #a9dce9;
+}
+
+.compare-diff.good {
+  color: var(--ok);
+}
+
+.compare-diff.bad {
+  color: var(--bad);
+}
+
+.simulator-panel {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(91, 205, 255, 0.2);
+  border-radius: 16px 6px 16px 6px;
+  background:
+    linear-gradient(120deg, rgba(11, 35, 55, 0.86), rgba(11, 16, 35, 0.82)),
+    radial-gradient(circle at 95% 10%, rgba(108, 104, 255, 0.17), transparent 32%);
+}
+
+.simulator-panel h3 {
+  margin: 0 0 0.25rem;
+  color: #dffcff;
+}
+
+.simulator-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.simulator-result {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.simulator-metric {
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(99, 238, 226, 0.11);
+  border-radius: 10px;
+  background: rgba(2, 11, 24, 0.55);
+}
+
+.simulator-metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.simulator-metric strong {
+  display: block;
+  color: #e8ffff;
+  margin-top: 0.08rem;
+}
+
+.simulator-lineup-change {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #a9dce9;
+  font-size: 0.78rem;
+}
+
+.favorite-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: end;
+  margin: 0.6rem 0 0.8rem;
+}
+
+.favorite-tools .field {
+  min-width: 170px;
+}
+
+.favorite-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.45rem 0 0.25rem;
+}
+
+.favorite-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid rgba(91, 205, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(49, 111, 196, 0.09);
+  color: #b8eff8;
+  font-size: 0.68rem;
+}
+
+.favorite-card-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.data-version {
+  display: block;
+  margin-top: 0.3rem;
+  color: rgba(170, 223, 232, 0.68);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 900px) {
+  .account-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-dashboard-card.primary {
+    grid-column: 1 / -1;
+  }
+
+  .compare-toolbar {
+    grid-template-columns: auto 1fr;
+  }
+
+  .simulator-result {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .decision-score-strip,
+  .simulator-controls,
+  .simulator-result,
+  .account-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .account-dashboard-card.primary {
+    grid-column: auto;
+  }
+
+  .simulator-lineup-change {
+    grid-column: auto;
+  }
+}
