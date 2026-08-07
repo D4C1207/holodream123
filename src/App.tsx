@@ -1704,14 +1704,14 @@ export default function App() {
         disabled={
           busy ||
           (theme === "roster"
-            ? ownedRosterMembers.length < 5 || ownedRosterCostumeIds.length === 0
+            ? ownedRosterMembers.length < 5 || rosterOwnedCostumeIdsForOptimize().size === 0
             : !leaderMember)
         }
         title={
           theme === "roster"
             ? ownedRosterMembers.length < 5
               ? t.rosterNeedFive
-              : ownedRosterCostumeIds.length === 0
+              : rosterOwnedCostumeIdsForOptimize().size === 0
                 ? rosterUi.needCostume
                 : rosterUi.autoCaptain
             : !leaderMember
@@ -1726,7 +1726,7 @@ export default function App() {
           {theme === "roster"
             ? ownedRosterMembers.length < 5
               ? t.rosterNeedFive
-              : ownedRosterCostumeIds.length === 0
+              : rosterOwnedCostumeIdsForOptimize().size === 0
                 ? rosterUi.needCostume
                 : rosterUi.autoCaptain
             : leaderMember
