@@ -43,7 +43,7 @@ function normalizeCardsByMember(value: unknown): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const [member, ids] of Object.entries(value as Record<string, unknown>)) {
     const normalized = uniqueStrings(Array.isArray(ids) ? ids : [ids]);
-    if (normalized.length) out[member] = normalized;
+    out[member] = normalized;
   }
   return out;
 }

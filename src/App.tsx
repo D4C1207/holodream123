@@ -56,6 +56,10 @@ const STORAGE_PREF_CARDS = "holodream-preferred-cards";
 
 const allCardIds = new Set(data.cards.map((c) => c.id));
 const allCostumeIds = new Set(data.costumes.map((c) => c.id));
+const cardById = new Map(data.cards.map((c) => [c.id, c] as const));
+const costumeIdByCardKey = new Map(
+  data.costumes.map((c) => [`${c.member}|||${c.costumeName}`, c.id] as const),
+);
 /** Fixed song length for Score UP / coverage (sec). */
 const SONG_LENGTH = data.songLengthDefault;
 
@@ -93,10 +97,6 @@ function rosterCardsForMember(member: string): Card[] {
     });
 }
 
-function defaultRosterCardIds(member: string): string[] {
-  return rosterCardsForMember(member).map((c) => c.id);
-}
-
 function loadJson<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -113,7 +113,7 @@ export default function App() {
     locale === "ja"
       ? {
           account: "ゲームアカウント",
-          rosterNote: "このゲームアカウントが所持している★5／イベントカードと衣装を登録してください。隊長・衣装・5人編成は自動で選ばれます。",
+          rosterNote: "所持している★5／イベントカードだけを登録してください。1枚だけのメンバーは自動登録、複数カードのメンバーは下のカード選択で所持衣装を決めます。隊長・衣装・5人編成は自動で選ばれます。",
           emptyReady: "バッグ設定後、右下のボタンで隊長・衣装・5人編成を自動計算します。",
           newAccount: "追加",
           rename: "名前変更",
@@ -123,7 +123,7 @@ export default function App() {
           costumeTitle: "所持している衣装",
           costumeNote: "所持衣装だけを選択してください。隊長と衣装は計算時に自動選択されます。",
           clearCostumes: "衣装をクリア",
-          needCostume: "所持衣装を1つ以上選択してください。",
+          needCostume: "選択したカードに対応する衣装データが見つかりません。複数カードのメンバーは所持カードを1枚以上選択してください。",
           autoCaptain: "隊長・衣装を自動選択",
           accountPrompt: "新しいゲームアカウント名",
           renamePrompt: "ゲームアカウント名を変更",
@@ -134,7 +134,7 @@ export default function App() {
       : locale === "en"
         ? {
             account: "Game account",
-            rosterNote: "Save the ★5/event cards and costumes owned by this game account. Captain, costume, and the five-member team are selected automatically.",
+            rosterNote: "Save only owned ★5/event cards. Members with one card are handled automatically; for members with multiple cards, the card picker below determines which costumes you own. Captain, costume, and the five-member team are selected automatically.",
             emptyReady: "After setting the inventory, use the button at bottom right to calculate the best captain, costume, and five-member team.",
             newAccount: "Add",
             rename: "Rename",
@@ -144,7 +144,7 @@ export default function App() {
             costumeTitle: "Owned costumes",
             costumeNote: "Select only costumes this account owns. Captain and costume are chosen automatically.",
             clearCostumes: "Clear costumes",
-            needCostume: "Select at least one owned costume.",
+            needCostume: "No usable costume was found. For members with multiple cards, select at least one owned card below.",
             autoCaptain: "Auto captain + costume",
             accountPrompt: "New game account name",
             renamePrompt: "Rename game account",
@@ -154,7 +154,7 @@ export default function App() {
           }
         : {
             account: "遊戲帳號",
-            rosterNote: "記錄這個遊戲帳號實際持有的 ★5／活動卡與衣裝；隊長、衣裝與五人編成都會由系統自動挑選。",
+            rosterNote: "只要記錄實際持有的 ★5／活動卡。只有 1 張卡的角色會自動帶入卡片與衣裝；有多張卡面的角色則以下方「★5 持有卡面」勾選結果決定可用衣裝。隊長、衣裝與五人編成都由系統自動挑選。",
             emptyReady: "背包設定完成後，按右下角即可自動計算最佳隊長、衣裝與五人編成。",
             newAccount: "新增帳號",
             rename: "改名",
@@ -164,7 +164,7 @@ export default function App() {
             costumeTitle: "持有衣裝",
             costumeNote: "只勾選此帳號實際持有的衣裝；計算時會自動挑隊長與衣裝，不用先指定。",
             clearCostumes: "清空衣裝",
-            needCostume: "請至少選擇一件已持有衣裝。",
+            needCostume: "目前沒有可用衣裝；有多張卡面的角色請在「★5 持有卡面」至少勾選一張。",
             autoCaptain: "自動挑隊長＋衣裝",
             accountPrompt: "新增遊戲帳號名稱",
             renamePrompt: "修改遊戲帳號名稱",
@@ -211,7 +211,6 @@ export default function App() {
 
   const wantedSet = useMemo(() => new Set(wantedMembers), [wantedMembers]);
   const rosterSet = useMemo(() => new Set(ownedRosterMembers), [ownedRosterMembers]);
-  const rosterCostumeSet = useMemo(() => new Set(ownedRosterCostumeIds), [ownedRosterCostumeIds]);
   const activeRosterProfile = useMemo(
     () => rosterProfiles.find((p) => p.id === activeRosterProfileId) ?? rosterProfiles[0],
     [rosterProfiles, activeRosterProfileId],
@@ -255,11 +254,10 @@ export default function App() {
   function rosterOwnedIds(member: string): string[] {
     const cards = rosterCardsForMember(member);
     const stored = rosterOwnedCards[member];
-    if (stored?.length) {
-      const valid = stored.filter((id) => cards.some((c) => c.id === id));
-      if (valid.length) return valid;
+    if (stored !== undefined) {
+      return stored.filter((id) => cards.some((c) => c.id === id));
     }
-    return cards.map((c) => c.id);
+    return cards.length === 1 ? [cards[0].id] : [];
   }
 
   function rosterOwnedCardIdsForOptimize(): Set<string> {
@@ -268,6 +266,17 @@ export default function App() {
       for (const id of rosterOwnedIds(member)) ids.add(id);
     }
     return ids;
+  }
+
+  function rosterOwnedCostumeIdsForOptimize(): Set<string> {
+    const costumeIds = new Set<string>();
+    for (const cardId of rosterOwnedCardIdsForOptimize()) {
+      const card = cardById.get(cardId);
+      if (!card) continue;
+      const costumeId = costumeIdByCardKey.get(`${card.member}|||${card.costumeName}`);
+      if (costumeId) costumeIds.add(costumeId);
+    }
+    return costumeIds;
   }
 
   const rosterMultiCardMembers = useMemo(() => {
@@ -394,21 +403,6 @@ export default function App() {
     }));
   }, []);
 
-  const rosterCostumeGroups = useMemo(() => {
-    const map = new Map<string, Costume[]>();
-    for (const costume of data.costumes) {
-      const list = map.get(costume.member) ?? [];
-      list.push(costume);
-      map.set(costume.member, list);
-    }
-    return [...map.entries()]
-      .sort((a, b) => compareMembersByGroup(a[0], b[0], unitsOf))
-      .map(([member, costumes]) => ({
-        member,
-        costumes: [...costumes].sort((a, b) => b.skill.score - a.skill.score),
-      }));
-  }, []);
-
   function persistRosterSnapshot(
     members: string[],
     cardsByMember: Record<string, string[]>,
@@ -499,7 +493,8 @@ export default function App() {
         if (removing) {
           delete nextPrefs[member];
         } else {
-          nextPrefs[member] = defaultRosterCardIds(member);
+          const cards = rosterCardsForMember(member);
+          nextPrefs[member] = cards.length === 1 ? [cards[0].id] : [];
         }
         persistRosterSnapshot(next, nextPrefs, ownedRosterCostumeIds);
         return nextPrefs;
@@ -530,23 +525,6 @@ export default function App() {
     setOwnedRosterMembers([]);
     setRosterOwnedCards({});
     persistRosterSnapshot([], {}, ownedRosterCostumeIds);
-    setResult(null);
-  }
-
-  function toggleRosterCostume(costumeId: string) {
-    setOwnedRosterCostumeIds((prev) => {
-      const next = prev.includes(costumeId)
-        ? prev.filter((id) => id !== costumeId)
-        : [...prev, costumeId];
-      persistRosterSnapshot(ownedRosterMembers, rosterOwnedCards, next);
-      setResult(null);
-      return next;
-    });
-  }
-
-  function clearRosterCostumes() {
-    setOwnedRosterCostumeIds([]);
-    persistRosterSnapshot(ownedRosterMembers, rosterOwnedCards, []);
     setResult(null);
   }
 
@@ -739,7 +717,8 @@ export default function App() {
         return;
       }
     }
-    if (!ownedRosterCostumeIds.length) {
+    const ownedCostumeIds = rosterOwnedCostumeIdsForOptimize();
+    if (!ownedCostumeIds.size) {
       alert(rosterUi.needCostume);
       return;
     }
@@ -748,7 +727,7 @@ export default function App() {
     void prepareAndRunOptimize(
       rosterOwnedCardIdsForOptimize(),
       {
-        ownedCostumeIds: new Set(ownedRosterCostumeIds),
+        ownedCostumeIds,
         songLength: SONG_LENGTH,
         fixedLeader: null,
         fixedCostumeId: null,
@@ -1092,48 +1071,6 @@ export default function App() {
               })}
             </div>
           )}
-          <div className="roster-costume-pick">
-            <div className="panel-head roster-panel-head">
-              <div>
-                <h3>{rosterUi.costumeTitle}（{ownedRosterCostumeIds.length}）</h3>
-                <p className="panel-note">{rosterUi.costumeNote}</p>
-              </div>
-              <button className="btn btn-ghost" type="button" onClick={clearRosterCostumes}>
-                {rosterUi.clearCostumes}
-              </button>
-            </div>
-            <div className="roster-costume-list">
-              {rosterCostumeGroups.map(({ member, costumes }) => (
-                <div key={member} className="roster-costume-row">
-                  <div className="roster-card-pick-label">
-                    <Portrait member={member} size="sm" />
-                    <MemberName member={member} units={unitsOf(member)} />
-                  </div>
-                  <div className="roster-costume-options">
-                    {costumes.map((costume) => {
-                      const owned = rosterCostumeSet.has(costume.id);
-                      const card = data.cards.find(
-                        (c) => c.member === costume.member && c.costumeName === costume.costumeName,
-                      );
-                      return (
-                        <button
-                          key={costume.id}
-                          type="button"
-                          className={`roster-costume-option ${owned ? "active" : ""}`}
-                          aria-pressed={owned}
-                          onClick={() => toggleRosterCostume(costume.id)}
-                        >
-                          {owned && <span className="roster-card-check" aria-hidden>✓</span>}
-                          <CardArt cardId={card?.id} alt={costume.costumeName} />
-                          <span>{costume.costumeName}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
       )}
 
