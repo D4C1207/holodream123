@@ -1,4 +1,4 @@
-name: D4C verified upgrade
+name: D4C feature upgrade
 
 on:
   push:
@@ -24,181 +24,25 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Apply multi-account and auto-captain features
+      - name: Rebuild and verify patch
         shell: bash
         run: |
-          base64 -d d4c.patch.b64 > /tmp/d4c.patch
+          cat .d4c-patch/01 .d4c-patch/02 .d4c-patch/03 .d4c-patch/04 .d4c-patch/05 .d4c-patch/06 .d4c-patch/07 .d4c-patch/08 .d4c-patch/09 .d4c-patch/10 .d4c-patch/11 .d4c-patch/12 .d4c-patch/13 .d4c-patch/14 | base64 -d > /tmp/d4c.patch
+          echo "5122831f0c724fabd08149bc2af355f8567066f47af5e210623946012784a5f9  /tmp/d4c.patch" | sha256sum -c -
           git apply --check /tmp/d4c.patch
           git apply /tmp/d4c.patch
           test -f src/lib/rosterProfiles.ts
           grep -q 'bootstrapRosterProfiles' src/App.tsx
           grep -q 'autoCaptainInventory' src/lib/optimizer.ts
           grep -q 'roster-account-bar' src/styles.css
-          echo "Feature patch verified"
 
-      - name: Apply D4C branding and UI refresh
-        shell: bash
-        run: |
-          cat > README.md <<'EOF'
-          # D4C Holodream Tools
-
-          **D4C 維護／擴充版本**
-
-          本專案以 [holodreams123-afk/holodream](https://github.com/holodreams123-afk/holodream) 為基底進行修改與擴充。原始版本 README 所列製作者為 **108_虎太郎**；此 Fork 由 **D4C** 維護。
-
-          > 本工具為粉絲製作的非官方工具，與 COVER／QualiArts 無關。原專案與資料來源之權利歸各自權利人所有。
-
-          ## D4C 版本功能
-
-          - 多遊戲帳號分開記憶背包
-          - 每個帳號獨立保存角色、★5 卡面與衣裝
-          - 背包 JSON 匯入／匯出
-          - 現有背包模式不必手動指定隊長，系統會自動比較隊長衣裝與五人編成
-          - 修正現有隊員最佳化候選範圍
-          - 卡牌列表搜尋與長列表顯示效能改善
-          - 中文／English／日本語介面
-
-          ## 公開網站
-
-          啟用 GitHub Pages 後：
-
-          **https://d4c1207.github.io/holodream123/**
-
-          GitHub Pages 請使用 **GitHub Actions** 作為 Build and deployment Source。
-
-          ## 本機開發
-
-          ```bash
-          npm install
-          npm run dev
-          ```
-
-          正式建置：
-
-          ```bash
-          npm run build
-          ```
-
-          ## 編隊說明
-
-          系統主要比較衣裝技能條件、被動技能、Score UP／覆蓋率與加成後三圍。D4C 版的「現有隊員編隊」會以使用者實際輸入的角色、卡面與衣裝為候選池，自動尋找高評分組合。
-
-          ## 資料與聲明
-
-          - 基底專案：`holodreams123-afk/holodream`
-          - D4C Fork：`D4C1207/holodream123`
-          - 卡牌／技能資料整理自公開攻略，可能隨遊戲版本更新
-          - 數值顯示以滿綻放・滿等為基準
-          - 此版本為衍生修改版，不代表原作者或遊戲官方
-          EOF
-
-          cat >> src/styles.css <<'EOF'
-
-          /* D4C edition visual refresh */
-          :root {
-            --bg0: #050910;
-            --bg1: #09131e;
-            --bg2: #0d1c2b;
-            --ink: #effcff;
-            --muted: #9db7c3;
-            --line: rgba(106, 235, 226, 0.18);
-            --accent: #68eadf;
-            --accent-2: #8d7cff;
-            --accent-3: #4cb7ff;
-            --panel: rgba(8, 19, 30, 0.82);
-            --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
-            --glow: 0 0 44px rgba(104, 234, 223, 0.14);
-          }
-
-          body {
-            background:
-              radial-gradient(900px 560px at 8% -8%, rgba(76, 183, 255, 0.18), transparent 58%),
-              radial-gradient(840px 520px at 94% 5%, rgba(141, 124, 255, 0.20), transparent 54%),
-              radial-gradient(760px 460px at 50% 112%, rgba(104, 234, 223, 0.11), transparent 54%),
-              linear-gradient(155deg, #04070d 0%, #07111b 45%, #060b12 100%);
-          }
-
-          body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0.18;
-            background-image:
-              linear-gradient(rgba(104, 234, 223, 0.08) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(104, 234, 223, 0.08) 1px, transparent 1px);
-            background-size: 34px 34px;
-            mask-image: linear-gradient(to bottom, black, transparent 78%);
-          }
-
-          .hero {
-            border-radius: 24px;
-            border-color: rgba(104, 234, 223, 0.25);
-            background:
-              linear-gradient(135deg, rgba(10, 30, 43, 0.94), rgba(10, 13, 29, 0.90)),
-              radial-gradient(circle at 78% 20%, rgba(141, 124, 255, 0.20), transparent 42%);
-          }
-          .hero-glow { background: radial-gradient(circle, rgba(104, 234, 223, 0.20), transparent 65%); }
-          .hero-kicker { color: var(--accent); }
-          .brand { text-shadow: 0 0 26px rgba(104, 234, 223, 0.34); letter-spacing: 0.02em; }
-          .brand-mark {
-            background: linear-gradient(135deg, #68eadf, #4cb7ff 48%, #8d7cff);
-            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-            box-shadow: 0 0 22px rgba(104, 234, 223, 0.46);
-          }
-          .brand-sub { color: #b7e9ee; }
-          .lang-btn, .theme-tab { border-color: rgba(104, 234, 223, 0.26); background: rgba(7, 18, 29, 0.66); }
-          .lang-btn.active, .theme-tab.active {
-            background: linear-gradient(135deg, rgba(104, 234, 223, 0.22), rgba(141, 124, 255, 0.22));
-            border-color: rgba(104, 234, 223, 0.62);
-            box-shadow: 0 0 20px rgba(104, 234, 223, 0.13);
-          }
-          .theme-tab:hover, .lang-btn:hover { border-color: rgba(76, 183, 255, 0.58); }
-          .panel, .theme-intro, .roster-account-bar { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-          .panel { border-color: rgba(104, 234, 223, 0.16); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.30); }
-          .btn-primary, .fab-optimize { background: linear-gradient(135deg, #2abeb5, #4c91ff 58%, #7f68e8); }
-          @media (prefers-reduced-motion: reduce) { .hero-glow, .brand-mark { animation: none !important; } }
-          EOF
-
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path('index.html')
-          s = p.read_text()
-          s = s.replace('<title>Hololive Dreams 小工具</title>', '<title>D4C Holodream Tools</title>')
-          s = s.replace('製作者 108_虎太郎 · hololive Dreams（ホロドリ）小工具：角色一覽・最強編隊', 'D4C 維護版 · 基於 holodreams123-afk/holodream 的 Hololive Dreams 編隊工具')
-          p.write_text(s)
-
-          p = Path('src/i18n/messages.ts')
-          s = p.read_text()
-          replacements = {
-              'brand: "Hololive Dreams 小工具"': 'brand: "D4C Holodream"',
-              'brandSub: "製作者 108_虎太郎 · ホロドリ便利ツール"': 'brandSub: "Hololive Dreams 編隊工具 · D4C 維護版"',
-              'footer: "製作者 108_虎太郎 · 資料對照 Game8 / AppMedia / Gamerch"': 'footer: "D4C 維護版 · 基於 108_虎太郎 / holodreams123-afk/holodream · 資料對照 Game8 / AppMedia / Gamerch"',
-              'brand: "Hololive Dreams Tools"': 'brand: "D4C Holodream"',
-              'brandSub: "by 108_虎太郎 · Holodori utility"': 'brandSub: "Hololive Dreams team tool · D4C edition"',
-              'footer: "Created by 108_虎太郎 · Data cross-checked with Game8 / AppMedia / Gamerch"': 'footer: "D4C edition · Based on 108_虎太郎 / holodreams123-afk/holodream · Data: Game8 / AppMedia / Gamerch"',
-              'brand: "Hololive Dreams 便利ツール"': 'brand: "D4C Holodream"',
-              'brandSub: "制作 108_虎太郎 · ホロドリ補助ツール"': 'brandSub: "Hololive Dreams 編成ツール · D4C版"',
-              'footer: "制作 108_虎太郎 · データ照合：Game8 / AppMedia / Gamerch"': 'footer: "D4C版 · 108_虎太郎 / holodreams123-afk/holodream を基に改修 · データ：Game8 / AppMedia / Gamerch"',
-          }
-          for old, new in replacements.items():
-              s = s.replace(old, new)
-          s = s.replace('madeBy: "made by 108_虎太郎"', 'madeBy: "D4C EDITION"')
-          p.write_text(s)
-
-          p = Path('.github/workflows/deploy-pages.yml')
-          s = p.read_text().replace('VITE_BASE: /holodream/', 'VITE_BASE: /holodream123/')
-          p.write_text(s)
-          PY
-
-      - name: Build verification
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - name: Build
+      - name: Build verification
         shell: bash
         env:
           VITE_BASE: /holodream123/
@@ -207,17 +51,17 @@ jobs:
         run: |
           npm ci
           npm run build
-          grep -q 'D4C Holodream Tools' dist/index.html
 
-      - name: Commit verified D4C edition
+      - name: Commit verified feature changes
         shell: bash
         run: |
           git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
           rm -f d4c.patch.b64
+          rm -rf .d4c-patch
           rm -f .github/workflows/d4c-code-upgrade.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --stat
-          git commit -m "Launch D4C Holodream edition"
+          git commit -m "Add D4C multi-account roster optimizer"
           git push origin HEAD:main
