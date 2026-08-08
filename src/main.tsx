@@ -7,6 +7,7 @@ import "./d4c.css";
 import "./favorites.css";
 import "./d4c-layout-v2.css";
 import "./decision-tools.css";
+import "./roster-constraints.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
