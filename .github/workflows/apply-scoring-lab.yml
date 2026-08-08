@@ -21,6 +21,9 @@ jobs:
       - name: Apply scoring and lab changes
         run: python3 .github/scripts/apply_scoring_lab.py
 
+      - name: Remove unused manual lab type import
+        run: sed -i 's/Card, CardStats, Costume, GameData, TeamEvaluation/Card, CardStats, GameData, TeamEvaluation/' src/components/ManualDeckLab.tsx
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
