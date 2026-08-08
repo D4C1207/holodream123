@@ -1000,12 +1000,13 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
   ).size;
 
   const required = new Set<string>(options.fixedMembers ?? []);
-  const autoCaptainInventory =
-    !options.fixedLeader && (options.memberPool?.length ?? 0) > 0;
+  const inventoryMode = (options.memberPool?.length ?? 0) > 0;
 
   // Fixed captain costume: full enumeration (captain may be off-team).
   if (options.fixedLeader && options.fixedCostumeId) return optimizeTeam(data, options);
-  if (!autoCaptainInventory && (ownedCount <= 28 || required.size >= 2)) {
+  // Inventory mode keeps the bounded fast path even when optional lineup/captain
+  // constraints are active, preserving the rule that captain may remain off-team.
+  if (!inventoryMode && (ownedCount <= 28 || required.size >= 2)) {
     return optimizeTeam(data, options);
   }
 
