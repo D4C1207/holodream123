@@ -1,0 +1,60 @@
+name: Apply roster constraints
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-roster-constraints.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply roster constraints
+        run: python3 .github/scripts/add_roster_constraints.py
+
+      - name: Verify constraint features
+        shell: bash
+        run: |
+          grep -q 'rosterRequiredMembers' src/App.tsx
+          grep -q 'rosterFixedCaptain' src/App.tsx
+          grep -q '必上場成員' src/App.tsx
+          grep -q '指定隊長' src/App.tsx
+          grep -q 'inventoryMode' src/lib/optimizer.ts
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build verification
+        env:
+          VITE_BASE: /holodream123/
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit verified roster constraints
+        shell: bash
+        run: |
+          git checkout -- tsconfig.tsbuildinfo 2>/dev/null || true
+          rm -f .github/scripts/add_roster_constraints.py
+          rm -f .github/workflows/apply-roster-constraints.yml
+          git config user.name 'D4C1207'
+          git config user.email 's1113708@mail.yzu.edu.tw'
+          git add -A
+          git diff --cached --stat
+          git commit -m 'Add optional roster member and captain constraints'
+          git push origin HEAD:main
