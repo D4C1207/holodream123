@@ -189,7 +189,17 @@ export function getPrBaselineEntry(
 ): (PrTeamCacheEntry & { costumeId: string }) | null {
   const teams = getPrCostumeTop8(costumeId, songLength, poolCardCount);
   if (!teams?.length) return null;
-  return { costumeId, ...teams[0] };
+  const unitMax = Math.max(...teams.map((team) => team.effectiveStatTotal));
+  const avgMax = Math.max(...teams.map((team) => team.avgScoreUp));
+  const coverageMax = Math.max(...teams.map((team) => team.coverage));
+  const ratio = (value: number, reference: number) =>
+    reference > 1e-9 ? Math.min(Math.max(value / reference, 0), 1) : 1;
+  const score = (team: PrTeamCacheEntry) =>
+    ratio(team.effectiveStatTotal, unitMax) * 0.50 +
+    ratio(team.avgScoreUp, avgMax) * 0.30 +
+    ratio(team.coverage, coverageMax) * 0.20;
+  const best = [...teams].sort((a, b) => score(b) - score(a))[0];
+  return { costumeId, ...best };
 }
 
 export function hasPrBaselineEntry(

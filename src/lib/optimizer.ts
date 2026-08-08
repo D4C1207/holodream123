@@ -62,7 +62,10 @@ export interface OptimizeResult {
 
 /** Build optimizer UI result from cached top-N teams (skips search). */
 export function buildOptimizeResultFromCache(byOverall: TeamEvaluation[]): OptimizeResult {
-  const top = byOverall.slice(0, 8);
+  const cached = byOverall.slice(0, 8);
+  // Cached teams may carry PR values from an older scoring revision. Always
+  // re-score the hydrated candidates with the current ratio-to-best formula.
+  const top = rankByPowerRating(cached, 8, null);
   const byStats = [...top].sort((a, b) => b.effectiveStatTotal - a.effectiveStatTotal);
   const byCoverage = [...top].sort((a, b) => b.coverage - a.coverage);
   const byAvgScoreUp = [...top].sort((a, b) => b.avgScoreUp - a.avgScoreUp);
@@ -262,27 +265,32 @@ function roughPrSeed(t: TeamEvaluation): number {
   return t.effectiveStatTotal / 250 + t.coverage * 120 + t.avgScoreUp;
 }
 
-function minMaxNorm(values: number[], v: number): number {
-  if (!values.length) return 0;
-  let lo = values[0];
-  let hi = values[0];
-  for (const x of values) {
-    if (x < lo) lo = x;
-    if (x > hi) hi = x;
-  }
-  if (hi - lo < 1e-9) return 1;
-  return (v - lo) / (hi - lo);
+const PR_WEIGHT_UNIT = 0.50;
+const PR_WEIGHT_AVG_UP = 0.30;
+const PR_WEIGHT_COVERAGE = 0.20;
+
+function ratioToReference(value: number, reference: number): number {
+  if (reference <= 1e-9) return 1;
+  return Math.min(Math.max(value / reference, 0), 1);
 }
 
-function ratioToBaseline(value: number, base: number): number {
-  if (base <= 1e-9) return 1;
-  return value / base;
+function prCompletion(
+  team: TeamEvaluation,
+  unitRef: number,
+  avgRef: number,
+  coverageRef: number,
+): number {
+  return (
+    ratioToReference(team.effectiveStatTotal, unitRef) * PR_WEIGHT_UNIT +
+    ratioToReference(team.avgScoreUp, avgRef) * PR_WEIGHT_AVG_UP +
+    ratioToReference(team.coverage, coverageRef) * PR_WEIGHT_COVERAGE
+  );
 }
 
 /**
  * Build overall PR ranking.
  * When baseline is set (unconstrained best under same costume),
- * PR = mean(stats/base, coverage/base, avgUP/base) × PR_MAX; baseline team = PR_MAX.
+ * PR = weighted completion vs best references: Unit 50% / Avg UP 30% / Coverage 20%.
  */
 function rankByPowerRating(
   pool: TeamEvaluation[],
@@ -294,36 +302,29 @@ function rankByPowerRating(
   const preferred = pool.filter((t) => t.costumeSatisfied && t.allPassivesSatisfied);
   const use = preferred.length > 0 ? preferred : pool;
 
-  const stats = use.map((t) => t.effectiveStatTotal);
-  const cov = use.map((t) => t.coverage);
-  const avg = use.map((t) => t.avgScoreUp);
+  // PR is a completion score, not a min-max rank. Each component is measured
+  // against the best reference value, so the weakest candidate never becomes
+  // an artificial zero just because it happened to be last in this search.
+  const unitRef = baseline?.effectiveStatTotal ?? Math.max(...use.map((t) => t.effectiveStatTotal));
+  const avgRef = baseline?.avgScoreUp ?? Math.max(...use.map((t) => t.avgScoreUp));
+  const coverageRef = baseline?.coverage ?? Math.max(...use.map((t) => t.coverage));
 
-  const scored = use.map((t) => {
-    let pr: number;
-    if (baseline) {
-      if (isSameTeam(t, baseline)) {
-        pr = PR_MAX;
-      } else {
-        // Cap each ratio at 1 — baseline is lexicographic-best, but one metric can
-        // exceed baseline while others lag; uncapped average falsely hit 9999 often.
-        const s = Math.min(ratioToBaseline(t.effectiveStatTotal, baseline.effectiveStatTotal), 1);
-        const c = Math.min(ratioToBaseline(t.coverage, baseline.coverage), 1);
-        const a = Math.min(ratioToBaseline(t.avgScoreUp, baseline.avgScoreUp), 1);
-        pr = ((s + c + a) / 3) * PR_MAX;
-      }
-    } else {
-      pr =
-        ((minMaxNorm(stats, t.effectiveStatTotal) +
-          minMaxNorm(cov, t.coverage) +
-          minMaxNorm(avg, t.avgScoreUp)) /
-          3) *
-        PR_MAX;
-    }
-    if (baseline && !isSameTeam(t, baseline)) {
-      pr = Math.min(pr, PR_MAX - 1);
-    } else {
-      pr = Math.min(pr, PR_MAX);
-    }
+  const raw = use.map((t) => ({
+    t,
+    completion: prCompletion(t, unitRef, avgRef, coverageRef),
+  }));
+
+  // With no external baseline, scale the best weighted completion to PR 9999.
+  // With an explicit unconstrained baseline, 9999 stays reserved for that baseline.
+  const bestCompletion = baseline
+    ? 1
+    : Math.max(1e-9, ...raw.map((item) => item.completion));
+
+  const scored = raw.map(({ t, completion }) => {
+    let pr = (completion / bestCompletion) * PR_MAX;
+    if (baseline && isSameTeam(t, baseline)) pr = PR_MAX;
+    if (baseline && !isSameTeam(t, baseline)) pr = Math.min(pr, PR_MAX - 1);
+    pr = Math.min(Math.max(pr, 0), PR_MAX);
     return { t, pr };
   });
 
@@ -338,13 +339,9 @@ function rankByPowerRating(
 
   return scored.slice(0, max).map(({ t, pr }) => ({
     ...t,
-    powerRating:
-      baseline && isSameTeam(t, baseline)
-        ? PR_MAX
-        : Math.min(Math.floor(pr), baseline ? PR_MAX - 1 : PR_MAX),
+    powerRating: Math.floor(pr),
   }));
 }
-
 function pickBaselineTeam(result: OptimizeResult): TeamEvaluation | null {
   const pools = [
     ...result.byOverall,

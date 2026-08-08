@@ -8,7 +8,7 @@ import {
   formatCostumeSkillText,
   formatPassiveSkill,
 } from "../lib/skillText";
-import type { Card, CardStats, Costume, GameData, TeamEvaluation } from "../types";
+import type { Card, CardStats, GameData, TeamEvaluation } from "../types";
 import { CardArt } from "./CardArt";
 
 const SLOT_COUNT = 5;
@@ -373,7 +373,7 @@ export function ManualDeckLab({
                   <small>{localize(locale, "固定公式實戰指數", "Fixed-formula battle index", "固定式の実戦指数")}</small>
                 </div>
                 <div className="manual-score-card">
-                  <span>{localize(locale, "加成後三圍", "Buffed stats", "補正後パラメータ")}</span>
+                  <span>Unit Value</span>
                   <strong>{evaluation.effectiveStatTotal.toLocaleString()}</strong>
                   <small>+{(evaluation.effectiveStatTotal - evaluation.baseStatTotal).toLocaleString()}</small>
                 </div>

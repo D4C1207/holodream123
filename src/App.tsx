@@ -4,6 +4,7 @@ import { CardArt } from "./components/CardArt";
 import { CardFilterToolbar, CardGroupBrowser } from "./components/CardBrowser";
 import { MemberName } from "./components/MemberName";
 import { Portrait } from "./components/Portrait";
+import { ManualDeckLab } from "./components/ManualDeckLab";
 import { useI18n } from "./i18n/LocaleContext";
 import { LOCALES } from "./i18n/messages";
 import {
@@ -80,7 +81,7 @@ const costumeIdByCardKey = new Map(
 const SONG_LENGTH = data.songLengthDefault;
 
 type AppTheme = "gallery" | "optimize" | "roster" | "favorites";
-type ResultTrack = "overall" | "stats" | "coverage" | "score";
+type ResultTrack = "overall" | "stats" | "performance" | "technique" | "sense" | "coverage" | "score";
 
 type OptimizeUiResult = {
   best: TeamEvaluation | null;
@@ -152,6 +153,13 @@ function loadUiState(): UiState {
 function signed(value: number, digits = 0): string {
   const out = value.toFixed(digits);
   return `${value > 0 ? "+" : ""}${out}`;
+}
+
+function teamAxisTotal(
+  team: TeamEvaluation,
+  axis: "performance" | "technique" | "sense",
+): number {
+  return team.memberEffectiveStats.reduce((sum, member) => sum + member[axis], 0);
 }
 
 export default function App() {
@@ -234,10 +242,10 @@ export default function App() {
           globalPool: "最強編成 / 全カード",
           account: "アカウント",
           costume: "衣装",
-          stats: "総合パラメータ",
+          stats: "Unit Value",
           coverage: "カバー率",
           avgUp: "平均UP",
-          prNote: "PRは絶対戦力ではありません。現有メンバー自動編成では、その検索内の候補について総合パラメータ・Score UPカバー率・平均UPをそれぞれ正規化し、3項目を同じ重みで平均して9999点満点に換算します。異なるアカウント間ではPRだけでなく3つの実数値も合わせて比較してください。",
+          prNote: "PRは絶対戦力ではありません。Unit Value 50%・全曲平均UP 30%・Coverage 20%を、それぞれ今回候補の最高値に対する比率で評価し、総合トップを9999に換算します。最下位を0にするmin-max方式は使用しません。",
         }
       : locale === "en"
         ? {
@@ -252,10 +260,10 @@ export default function App() {
             globalPool: "Best Team / full pool",
             account: "Account",
             costume: "Costume",
-            stats: "Buffed stats",
+            stats: "Unit Value",
             coverage: "Coverage",
             avgUp: "Avg UP",
-            prNote: "PR is not an absolute power value. In automatic owned-roster mode, buffed stats, Score UP coverage, and average effective Score UP are normalized within that search, averaged with equal weight, then scaled to 9999. For cross-account comparison, compare the three raw metrics as well as PR.",
+            prNote: "PR is not an absolute power value. Unit Value 50%, full-song Avg UP 30%, and Coverage 20% are scored as ratios to the best value in the current candidate search, then the best weighted completion is scaled to 9999. The weakest candidate is no longer forced to zero by min-max normalization.",
           }
         : {
             tab: "收藏隊伍",
@@ -269,10 +277,10 @@ export default function App() {
             globalPool: "最強編隊／全卡池",
             account: "帳號",
             costume: "衣裝",
-            stats: "加成後三圍",
+            stats: "Unit Value",
             coverage: "覆蓋率",
             avgUp: "平均 UP",
-            prNote: "PR 不是跨帳號的絕對戰力。現有隊員自動編隊時，會把該次搜尋候選的「加成後三圍、Score UP 覆蓋率、平均有效 Score UP」各自正規化，三項等權平均後換算成 9999 分。不同帳號要比較時，建議連同三項實際數值一起看。",
+            prNote: "PR 不是跨帳號的絕對戰力。Unit Value 50%、全曲平均 UP 30%、Coverage 20% 都改用「本次候選最高值＝100%」的比率計分，再把最高綜合完成度換算成 9999；不再用最低候選硬歸零的 min-max。",
           };
 
   const [rosterBootstrap] = useState(() => bootstrapRosterProfiles(data));
@@ -996,7 +1004,21 @@ export default function App() {
     if (resultTrack === "overall") return result.byOverall;
     if (resultTrack === "stats") return result.byStats;
     if (resultTrack === "coverage") return result.byCoverage;
-    return result.byAvgScoreUp;
+    if (resultTrack === "score") return result.byAvgScoreUp;
+    const axis = resultTrack;
+    const unique = new Map<string, TeamEvaluation>();
+    for (const team of [
+      ...result.top,
+      ...result.byOverall,
+      ...result.byStats,
+      ...result.byCoverage,
+      ...result.byAvgScoreUp,
+    ]) {
+      unique.set(teamDecisionKey(team), team);
+    }
+    return [...unique.values()]
+      .sort((a, b) => teamAxisTotal(b, axis) - teamAxisTotal(a, axis))
+      .slice(0, 8);
   }, [result, resultTrack]);
 
   const selected = trackList[selectedIdx] ?? null;
@@ -1177,6 +1199,9 @@ export default function App() {
     if (resultTrack === "coverage") {
       return t.metricCoverage((ev.coverage * 100).toFixed(1));
     }
+    if (resultTrack === "performance") return `P ${teamAxisTotal(ev, "performance").toLocaleString()}`;
+    if (resultTrack === "technique") return `T ${teamAxisTotal(ev, "technique").toLocaleString()}`;
+    if (resultTrack === "sense") return `S ${teamAxisTotal(ev, "sense").toLocaleString()}`;
     return t.metricAvgUp(ev.avgScoreUp.toFixed(1));
   }
 
@@ -1608,14 +1633,14 @@ export default function App() {
               {locale === "ja"
                 ? "ここで表示するPRは、このゲームアカウントの所持カード・衣装から作れる候補編成の中で比較した相対評価です。別アカウントと比較する場合は、PRだけでなく総合パラメータ・カバー率・平均UPも確認してください。"
                 : locale === "en"
-                  ? "PR here is a relative score among teams that can be built from this game account's saved inventory. When comparing different accounts, also compare buffed stats, coverage, and average UP instead of PR alone."
-                  : "這裡的 PR 是依目前這個遊戲帳號倉庫中實際持有的卡片與可用衣裝，對本次可組出的候選隊伍做相對評分。不同帳號互相比較時，請連同加成後三圍、覆蓋率與平均 UP 一起看，不要只看 PR。"}
+                  ? "PR is a completion score for this account's current candidates: Unit Value 50%, Avg UP 30%, and Coverage 20%, each measured as a ratio to the best value in this search, with the top weighted result scaled to 9999."
+                  : "這裡的 PR 是目前帳號倉庫本次候選的完成度評分：Unit Value 50%、平均 UP 30%、Coverage 20%，各自以本次最高值作為 100%，再將最佳綜合完成度換算成 9999。它不會再因為某隊剛好排名最後，就把該項硬算成 0 分。"}
             </span>
           </div>
           <details className="rule-guide">
             <summary>{locale === "ja" ? "計算ルールを見る" : locale === "en" ? "How the calculation works" : "計算規則與分數說明"}</summary>
             <div className="rule-guide-body">
-              <p><strong>PR：</strong>{locale === "ja" ? "このアカウントの今回の候補内での相対評価。" : locale === "en" ? "Relative score inside this account's current candidate search." : "只比較目前帳號這次搜尋中的候選隊伍，是相對分數。"}</p>
+              <p><strong>PR：</strong>{locale === "ja" ? "Unit Value 50%・平均UP 30%・Coverage 20%を各項目の最高値比で評価する完成度。" : locale === "en" ? "Completion score using ratio-to-best Unit Value 50%, Avg UP 30%, and Coverage 20%." : "完成度評分：Unit Value 50%、平均 UP 30%、Coverage 20%，各自除以本次候選最高值後加權。"}</p>
               <p><strong>SC：</strong>{locale === "ja" ? "固定式の実戦指数。(総合パラメータ + スコアサポート加重値) × (1 + 全曲平均Score UP/100)。同じ曲長ならアカウント間で比較できます。" : locale === "en" ? "Fixed battle index: (buffed stats + score-support equivalent) × (1 + full-song Avg Score UP/100). Comparable across accounts under the same song length." : "固定公式的實戰指數：（加成後三圍 + 分數支援加權值）×（1 + 全曲平均有效 Score UP / 100）；同曲長時可跨帳號比較。"}</p>
               <p><strong>{locale === "ja" ? "隊長" : locale === "en" ? "Captain" : "隊長"}：</strong>{locale === "ja" ? "主に衣装スキルを決めます。現有メンバー編成ではシステムが自動で隊長と衣装を試します。" : locale === "en" ? "Mainly determines the costume skill; owned-roster mode automatically tests captain and costume choices." : "主要決定衣裝技能；現有隊員模式會自動測試可用隊長與衣裝，不用先指定。"}</p>
               <p><strong>{locale === "ja" ? "カード→衣装" : locale === "en" ? "Card → costume" : "卡面 → 衣裝"}：</strong>{locale === "ja" ? "選んだカードに対応する衣装だけを所持扱いにします。複数カードのメンバーは下のカード選択が基準です。" : locale === "en" ? "Only costumes linked to selected owned cards count as available; multi-card members use the card picker below." : "持有哪張卡就視為持有該卡對應衣裝；同角色多卡時完全以下方「★5 持有卡面」勾選為準。"}</p>
@@ -1697,6 +1722,16 @@ export default function App() {
               })}
             </div>
           )}
+
+          <ManualDeckLab
+            data={data}
+            locale={locale}
+            accountId={activeRosterProfileId}
+            accountName={activeRosterProfile?.name ?? rosterUi.account}
+            ownedCardIds={[...rosterOwnedCardIdsForOptimize()]}
+            ownedCostumeIds={[...rosterOwnedCostumeIdsForOptimize()]}
+            seedTeam={result?.byOverall[0] ?? result?.best ?? null}
+          />
 
           <div className="simulator-panel">
             <h3>{locale === "ja" ? "もしこのカードを持っていたら？" : locale === "en" ? "What if I owned this card?" : "如果我有這張卡呢？"}</h3>
@@ -2008,6 +2043,24 @@ export default function App() {
                       desc: t.trackStatsDesc,
                     },
                     {
+                      id: "performance" as const,
+                      title: locale === "ja" ? "P特化" : locale === "en" ? "P Focus" : "P 特化",
+                      icon: "P",
+                      desc: locale === "ja" ? "補正後パフォーマンス合計順" : locale === "en" ? "Rank by total buffed Performance" : "依加成後表演力總和排序",
+                    },
+                    {
+                      id: "technique" as const,
+                      title: locale === "ja" ? "T特化" : locale === "en" ? "T Focus" : "T 特化",
+                      icon: "T",
+                      desc: locale === "ja" ? "補正後テクニック合計順" : locale === "en" ? "Rank by total buffed Technique" : "依加成後技巧總和排序",
+                    },
+                    {
+                      id: "sense" as const,
+                      title: locale === "ja" ? "S特化" : locale === "en" ? "S Focus" : "S 特化",
+                      icon: "S",
+                      desc: locale === "ja" ? "補正後センス合計順" : locale === "en" ? "Rank by total buffed Sense" : "依加成後感性總和排序",
+                    },
+                    {
                       id: "coverage" as const,
                       title: t.trackCoverage,
                       icon: "⏱",
@@ -2080,7 +2133,7 @@ export default function App() {
                       <tbody>
                         <tr><td>SC</td><td>{d4cBattleIndex(compareA).toLocaleString()}</td><td>{d4cBattleIndex(compareB).toLocaleString()}</td><td className={`compare-diff ${compareDiff.d4cIndex >= 0 ? "good" : "bad"}`}>{signed(compareDiff.d4cIndex)}</td></tr>
                         <tr><td>PR</td><td>{compareA.powerRating?.toFixed(0) ?? "—"}</td><td>{compareB.powerRating?.toFixed(0) ?? "—"}</td><td>{compareA.powerRating != null && compareB.powerRating != null ? signed(compareA.powerRating - compareB.powerRating) : "—"}</td></tr>
-                        <tr><td>{favoriteUi.stats}</td><td>{compareA.effectiveStatTotal.toLocaleString()}</td><td>{compareB.effectiveStatTotal.toLocaleString()}</td><td className={`compare-diff ${compareDiff.effectiveStats >= 0 ? "good" : "bad"}`}>{signed(compareDiff.effectiveStats)}</td></tr>
+                        <tr><td>Unit Value</td><td>{compareA.effectiveStatTotal.toLocaleString()}</td><td>{compareB.effectiveStatTotal.toLocaleString()}</td><td className={`compare-diff ${compareDiff.effectiveStats >= 0 ? "good" : "bad"}`}>{signed(compareDiff.effectiveStats)}</td></tr>
                         <tr><td>{favoriteUi.coverage}</td><td>{(compareA.coverage * 100).toFixed(1)}%</td><td>{(compareB.coverage * 100).toFixed(1)}%</td><td className={`compare-diff ${compareDiff.coveragePctPoint >= 0 ? "good" : "bad"}`}>{signed(compareDiff.coveragePctPoint, 1)}pt</td></tr>
                         <tr><td>{favoriteUi.avgUp}</td><td>{compareA.avgScoreUp.toFixed(1)}%</td><td>{compareB.avgScoreUp.toFixed(1)}%</td><td className={`compare-diff ${compareDiff.avgScoreUp >= 0 ? "good" : "bad"}`}>{signed(compareDiff.avgScoreUp, 1)}pt</td></tr>
                         <tr><td>{locale === "ja" ? "パッシブ" : locale === "en" ? "Passives" : "被動"}</td><td>{compareA.passiveDetails.filter((p) => p.satisfied).length}/{compareA.passiveDetails.length}</td><td>{compareB.passiveDetails.filter((p) => p.satisfied).length}/{compareB.passiveDetails.length}</td><td>{signed(compareDiff.passiveSatisfied)}</td></tr>
@@ -2182,9 +2235,14 @@ export default function App() {
                   <small>{locale === "ja" ? "固定式・同じ曲長ならアカウント間比較可" : locale === "en" ? "Fixed formula · comparable across accounts at the same song length" : "固定公式 · 同曲長可跨帳號比較"}</small>
                 </div>
                 <div className="decision-score-card">
-                  <span className="label">PR · {locale === "ja" ? "候補内相対評価" : locale === "en" ? "Relative candidate score" : "帳號候選相對評分"}</span>
+                  <span className="label">Unit Value</span>
+                  <strong>{detailEv.effectiveStatTotal.toLocaleString()}</strong>
+                  <small>{locale === "ja" ? `基礎 ${detailEv.baseStatTotal.toLocaleString()} · 補正 +${(detailEv.effectiveStatTotal - detailEv.baseStatTotal).toLocaleString()}` : locale === "en" ? `Base ${detailEv.baseStatTotal.toLocaleString()} · Buff +${(detailEv.effectiveStatTotal - detailEv.baseStatTotal).toLocaleString()}` : `基礎 ${detailEv.baseStatTotal.toLocaleString()} · 增益 +${(detailEv.effectiveStatTotal - detailEv.baseStatTotal).toLocaleString()}`}</small>
+                </div>
+                <div className="decision-score-card">
+                  <span className="label">PR · {locale === "ja" ? "最高値比の完成度" : locale === "en" ? "Ratio-to-best completion" : "相對最高完成度"}</span>
                   <strong>{detailEv.powerRating?.toFixed(0) ?? "—"}</strong>
-                  <small>{locale === "ja" ? "検索候補が変わると尺度も変わります" : locale === "en" ? "Scale changes when the candidate pool changes" : "候選池改變時，PR 尺度也會改變"}</small>
+                  <small>{locale === "ja" ? "Unit 50%・Avg UP 30%・Coverage 20%" : locale === "en" ? "Unit 50% · Avg UP 30% · Coverage 20%" : "Unit 50% · Avg UP 30% · Coverage 20%"}</small>
                 </div>
               </div>
               {whyOpen && decisionExplanation && (
