@@ -18,6 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fix migration matcher
+        run: python3 .github/scripts/fix_active_special_migration.py
+
       - name: Apply scoring changes
         run: python3 .github/scripts/apply_active_special_scoring.py
 
@@ -39,9 +42,10 @@ jobs:
         run: |
           rm -f .github/workflows/apply-active-special-scoring.yml
           rm -f .github/scripts/apply_active_special_scoring.py
+          rm -f .github/scripts/fix_active_special_migration.py
           git config user.name "D4C1207"
           git config user.email "s1113708@mail.yzu.edu.tw"
-          git add src/App.tsx src/components/ManualDeckLab.tsx src/lib/optimizer.ts src/lib/teamDecision.ts src/lib/specialOrder.ts README.md .github/workflows/apply-active-special-scoring.yml .github/scripts/apply_active_special_scoring.py
+          git add src/App.tsx src/components/ManualDeckLab.tsx src/lib/optimizer.ts src/lib/teamDecision.ts src/lib/specialOrder.ts README.md .github/workflows/apply-active-special-scoring.yml .github/scripts/apply_active_special_scoring.py .github/scripts/fix_active_special_migration.py
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
