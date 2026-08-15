@@ -101,7 +101,7 @@ function scoreSupportActiveGain(
  * interval, probability, duration, Score UP and satisfied bonus condition to estimate
  * how strongly each Special could interact with the team’s Active package.
  *
- * PR and SC are intentionally unchanged by this heuristic.
+ * PR and SC are intentionally unchanged by the ordering heuristic itself.
  */
 export function specialOrderMetrics(
   card: Card,
@@ -136,6 +136,22 @@ export function specialOrderMetrics(
     activeSynergy,
     priorityScore,
   };
+}
+
+/**
+ * Team-level Special × Active package strength used as one relative PR component.
+ * It sums the five Special-to-Active interaction potentials. This value is only
+ * compared against other candidates in the same search; it is not an official score.
+ */
+export function teamSpecialSynergy(team: TeamEvaluation): number {
+  const context: TeamConditionContext = {
+    typeCounts: team.typeCounts,
+    unitCounts: team.unitCounts,
+  };
+  return team.cards.reduce(
+    (sum, card) => sum + specialOrderMetrics(card, team.cards, context).activeSynergy,
+    0,
+  );
 }
 
 export function recommendSpecialOrder(
