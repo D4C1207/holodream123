@@ -37,12 +37,12 @@ Hololive Dreams（ホロドリ）粉絲製作的非官方工具：角色一覽�
 - 隊伍 A/B 比較：直接比較 PR、SC、Unit Value、Coverage、Avg UP 與被動
 - 「如果我有這張卡呢？」抽卡試算：不修改背包，暫時加入未持有卡重新配隊，並用固定 SC 比較前後差異
 - SC（非官方估算）：`（Unit Value + 分數支援加權值）×（1 + 全曲平均有效 Score UP / 100）`；不依候選池正規化，同曲長時可跨帳號比較
-- PR 採「相對最高完成度」：Unit Value 50%、Avg UP 30%、Coverage 20%，各項以本次候選最高值為 100%，再將最高綜合完成度換算為 9999
+- PR 採「相對最高完成度」：Unit Value 50%、Active 33%（Avg UP 23% + Coverage 10%）、Special × Active 聯動 17%，各項以本次候選最高值為 100%，再將最高綜合完成度換算為 9999
 - 隊伍收藏：所有遊戲帳號的收藏可在同一頁一次查看，並顯示帳號標籤
 - 收藏隊伍可加入自訂用途標籤並依標籤篩選
 - 一鍵完整備份／還原所有 `holodream-*` 瀏覽器資料，包含帳號、背包、收藏與 UI 設定
 - 編隊結果的第 1～5 位代表遊戲內實際位置，遊戲中應依網站輸出的相同順序擺放
-- Special Skill 發動順序建議：自動編隊會輸出 #1→#5 的實驗性 Special 順序（優先 Skill Rate UP，再比較 Score Support × 持續時間）；手動試算可一鍵套用或自行調整。由於官方完整觸發時點／分數公式未公開，此順序效果目前不納入 PR／SC
+- Special Skill 發動順序建議：自動編隊會輸出 #1→#5 的實驗性順序，並把 Special 與五張卡的 Active 發動間隔、機率、持續時間、Score UP、已成立追加倍率一起評估；手動試算可一鍵套用或自行調整。精確的「位置時點效果」仍因官方觸發時點未公開而不直接加進 SC
 - 頁尾顯示內建遊戲資料快照日期、卡片數與衣裝數
 - D4C 外框版面重新設計；保留角色倉庫、★5 卡面挑選與結果排名／詳情等核心操作區
 - 網站上方看板角色使用星街彗星（星街すいせい）
@@ -53,7 +53,9 @@ Hololive Dreams（ホロドリ）粉絲製作的非官方工具：角色一覽�
 
 ### PR
 
-PR 是目前搜尋候選池的「相對最高完成度」。不再採用最低候選＝0、最高候選＝1 的 min-max 正規化；改為將各隊的 **Unit Value／本次最高 Unit Value**、**全曲平均有效 Score UP／本次最高 Avg UP**、**Coverage／本次最高 Coverage** 轉成連續比率，再依 **50%／30%／20%** 加權。最後將本次最高綜合完成度換算為 9999。這樣兩支實際只差少量數值的隊伍，不會因為其中一支剛好墊底就被某一項強制算成 0 分。
+PR 是目前搜尋候選池的「相對最高完成度」，不採最低候選＝0 的 min-max。2026-08-15 起參考 Horodori 2026-08-08 評分更新中「Active 權重高於 Special（20:10）」的可用概念，但沒有照抄其卡片 Tier 公式。D4C 隊伍 PR 改為 **Unit Value 50%／Active 33%／Special 17%**：Active 33% 由本工具實際模擬的 **Avg UP 23% + Coverage 10%** 組成；Special 17% 則使用五張卡的 **Special × Active 聯動潛力**，會讀取 Active 的發動間隔、機率、持續時間、Score UP 與已成立追加倍率。各項都用本次最高參考值的連續比率計算，再將最高綜合完成度換算為 9999。
+
+Horodori 的 Deck Builder 本身仍把 Active／Special／Score Support／Board／Connect 等列為 Unit Score 未算入項目；D4C 只借用其「Active 與 Special 分開評價」及相對權重思路。Board／Connect／Member Bonus 因本工具沒有每個玩家的實際育成狀態，暫不納入 PR／SC。
 
 ### Unit Value
 

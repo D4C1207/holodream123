@@ -62,7 +62,7 @@ import {
   teamDecisionKey,
 } from "./lib/teamDecision";
 import { restoreFullBackup, stringifyFullBackup } from "./lib/fullBackup";
-import { specialOrderMetrics } from "./lib/specialOrder";
+import { specialOrderMetrics, teamSpecialSynergy } from "./lib/specialOrder";
 import type { Attr, Card, Costume, GameData, TeamEvaluation } from "./types";
 
 const data = gameData as GameData;
@@ -2137,6 +2137,7 @@ export default function App() {
                         <tr><td>Unit Value</td><td>{compareA.effectiveStatTotal.toLocaleString()}</td><td>{compareB.effectiveStatTotal.toLocaleString()}</td><td className={`compare-diff ${compareDiff.effectiveStats >= 0 ? "good" : "bad"}`}>{signed(compareDiff.effectiveStats)}</td></tr>
                         <tr><td>{favoriteUi.coverage}</td><td>{(compareA.coverage * 100).toFixed(1)}%</td><td>{(compareB.coverage * 100).toFixed(1)}%</td><td className={`compare-diff ${compareDiff.coveragePctPoint >= 0 ? "good" : "bad"}`}>{signed(compareDiff.coveragePctPoint, 1)}pt</td></tr>
                         <tr><td>{favoriteUi.avgUp}</td><td>{compareA.avgScoreUp.toFixed(1)}%</td><td>{compareB.avgScoreUp.toFixed(1)}%</td><td className={`compare-diff ${compareDiff.avgScoreUp >= 0 ? "good" : "bad"}`}>{signed(compareDiff.avgScoreUp, 1)}pt</td></tr>
+                        <tr><td>Special × Active</td><td>{teamSpecialSynergy(compareA).toFixed(1)}</td><td>{teamSpecialSynergy(compareB).toFixed(1)}</td><td className={`compare-diff ${compareDiff.specialSynergy >= 0 ? "good" : "bad"}`}>{signed(compareDiff.specialSynergy, 1)}</td></tr>
                         <tr><td>{locale === "ja" ? "パッシブ" : locale === "en" ? "Passives" : "被動"}</td><td>{compareA.passiveDetails.filter((p) => p.satisfied).length}/{compareA.passiveDetails.length}</td><td>{compareB.passiveDetails.filter((p) => p.satisfied).length}/{compareB.passiveDetails.length}</td><td>{signed(compareDiff.passiveSatisfied)}</td></tr>
                       </tbody>
                     </table>
@@ -2243,7 +2244,7 @@ export default function App() {
                 <div className="decision-score-card">
                   <span className="label">PR · {locale === "ja" ? "最高値比の完成度" : locale === "en" ? "Ratio-to-best completion" : "相對最高完成度"}</span>
                   <strong>{detailEv.powerRating?.toFixed(0) ?? "—"}</strong>
-                  <small>{locale === "ja" ? "Unit 50%・Avg UP 30%・Coverage 20%" : locale === "en" ? "Unit 50% · Avg UP 30% · Coverage 20%" : "Unit 50% · Avg UP 30% · Coverage 20%"}</small>
+                  <small>{locale === "ja" ? "Unit 50%・Active 33%・Special 17%" : locale === "en" ? "Unit 50% · Active 33% · Special 17%" : "Unit 50% · Active 33% · Special 17%"}</small>
                 </div>
               </div>
               {whyOpen && decisionExplanation && (
@@ -2345,24 +2346,27 @@ export default function App() {
                     <strong>{locale === "ja" ? "Special Skill 発動順" : locale === "en" ? "Special Skill activation order" : "Special Skill 發動順序"}</strong>
                     <small>
                       {locale === "ja"
-                        ? "#1→#5 の順で発動。現在は Skill Rate UP を前寄せし、その後に Score Support × 継続時間を優先する実験的ルールです。"
+                        ? "#1→#5 の順で発動。Special だけでなく、5枚の Active の間隔・確率・継続時間・Score UP・成立した追加倍率も合わせて評価します。"
                         : locale === "en"
-                          ? "Activates #1→#5. The current experimental rule places Skill Rate UP earlier, then prioritizes Score Support × duration."
-                          : "會依 #1→#5 發動。目前採實驗性規則：優先把 Skill Rate UP 放前面，再依 Score Support × 持續時間排列。"}
+                          ? "Activates #1→#5. The suggestion is Active-aware: interval, probability, duration, Score UP and satisfied Active bonuses are evaluated together with each Special."
+                          : "會依 #1→#5 發動。建議順序會同時看 Special 與 5 張卡的 Active：發動間隔、機率、持續時間、Score UP 與已成立的追加倍率。"}
                     </small>
                   </div>
                   <span className="special-order-badge">EXPERIMENTAL</span>
                 </div>
                 <div className="special-order-list">
                   {detailEv.cards.map((card, index) => {
-                    const metrics = specialOrderMetrics(card);
+                    const metrics = specialOrderMetrics(card, detailEv.cards, {
+                      typeCounts: detailEv.typeCounts,
+                      unitCounts: detailEv.unitCounts,
+                    });
                     const reason = metrics.skillRate > 0
                       ? (locale === "ja"
-                          ? `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}% を前寄せ`
+                          ? `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}% · Active連動 ${metrics.activeSynergy.toFixed(1)}`
                           : locale === "en"
-                            ? `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}% earlier`
-                            : `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}% 優先前置`)
-                      : `Support ${metrics.scoreSupport}% × ${metrics.duration}s`;
+                            ? `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}% · Active synergy ${metrics.activeSynergy.toFixed(1)}`
+                            : `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}% · Active聯動 ${metrics.activeSynergy.toFixed(1)}`)
+                      : `Support ${metrics.scoreSupport}% × ${metrics.duration}s · Active ${metrics.activeSynergy.toFixed(1)}`;
                     return (
                       <div key={`special-${card.id}-${index}`} className="special-order-row">
                         <span className="special-order-number">#{index + 1}</span>

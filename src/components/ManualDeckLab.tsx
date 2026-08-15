@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "../i18n/messages";
 import { d4cBattleIndex } from "../lib/teamDecision";
+import { countTypes, countUnits } from "../lib/conditions";
 import { evaluateTeam } from "../lib/optimizer";
 import { listName } from "../lib/names";
 import { recommendSpecialOrder, specialOrderMetrics } from "../lib/specialOrder";
@@ -198,8 +199,10 @@ export function ManualDeckLab({
   const ready = selectedCards.every((card) => !!card) && !!selectedCostume && !hasDuplicateMember;
   const specialSuggestion = useMemo(() => {
     if (!ready) return [];
-    return recommendSpecialOrder(selectedCards.filter((card): card is Card => !!card));
-  }, [ready, selectedCards]);
+    const cards = selectedCards.filter((card): card is Card => !!card);
+    const context = { typeCounts: countTypes(cards), unitCounts: countUnits(cards, data) };
+    return recommendSpecialOrder(cards, context);
+  }, [data, ready, selectedCards]);
 
   function applySpecialSuggestion() {
     if (specialSuggestion.length !== SLOT_COUNT) return;
@@ -373,15 +376,17 @@ export function ManualDeckLab({
               <div className="manual-special-order-list">
                 {selectedCards.map((card, index) => {
                   if (!card) return null;
-                  const metrics = specialOrderMetrics(card);
+                  const teamCards = selectedCards.filter((item): item is Card => !!item);
+                  const context = { typeCounts: countTypes(teamCards), unitCounts: countUnits(teamCards, data) };
+                  const metrics = specialOrderMetrics(card, teamCards, context);
                   const reason = metrics.skillRate > 0
                     ? localize(
                         locale,
-                        `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}%`,
-                        `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}%`,
-                        `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}%`,
+                        `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}% × Active聯動 ${metrics.activeSynergy.toFixed(1)}`,
+                        `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}% × Active synergy ${metrics.activeSynergy.toFixed(1)}`,
+                        `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}% × Active連動 ${metrics.activeSynergy.toFixed(1)}`,
                       )
-                    : `Support ${metrics.scoreSupport}% × ${metrics.duration}s`;
+                    : `Support ${metrics.scoreSupport}% × ${metrics.duration}s · Active ${metrics.activeSynergy.toFixed(1)}`;
                   return (
                     <div key={`${card.id}-${index}`} className="manual-special-order-item">
                       <span>#{index + 1}</span>

@@ -8,7 +8,7 @@ import {
   type ParamKey,
 } from "./stats";
 import type { Card, Costume, GameData, TeamEvaluation } from "../types";
-import { applyRecommendedSpecialOrder } from "./specialOrder";
+import { applyRecommendedSpecialOrder, teamSpecialSynergy } from "./specialOrder";
 import {
   countOptimizerPoolCards,
   getPrBaselineEntry,
@@ -266,9 +266,14 @@ function roughPrSeed(t: TeamEvaluation): number {
   return t.effectiveStatTotal / 250 + t.coverage * 120 + t.avgScoreUp;
 }
 
+// PR keeps 50% on the actual buffed unit value. The remaining 50% is
+// skill-side completion, split roughly 2:1 between Active and Special to mirror
+// the useful part of Horodori's current Active 20 / Special 10 emphasis.
+// Active is represented by our stronger full-song model: Avg UP + Coverage.
 const PR_WEIGHT_UNIT = 0.50;
-const PR_WEIGHT_AVG_UP = 0.30;
-const PR_WEIGHT_COVERAGE = 0.20;
+const PR_WEIGHT_AVG_UP = 0.23;
+const PR_WEIGHT_COVERAGE = 0.10;
+const PR_WEIGHT_SPECIAL = 0.17;
 
 function ratioToReference(value: number, reference: number): number {
   if (reference <= 1e-9) return 1;
@@ -280,18 +285,21 @@ function prCompletion(
   unitRef: number,
   avgRef: number,
   coverageRef: number,
+  specialRef: number,
 ): number {
   return (
     ratioToReference(team.effectiveStatTotal, unitRef) * PR_WEIGHT_UNIT +
     ratioToReference(team.avgScoreUp, avgRef) * PR_WEIGHT_AVG_UP +
-    ratioToReference(team.coverage, coverageRef) * PR_WEIGHT_COVERAGE
+    ratioToReference(team.coverage, coverageRef) * PR_WEIGHT_COVERAGE +
+    ratioToReference(teamSpecialSynergy(team), specialRef) * PR_WEIGHT_SPECIAL
   );
 }
 
 /**
  * Build overall PR ranking.
  * When baseline is set (unconstrained best under same costume),
- * PR = weighted completion vs best references: Unit 50% / Avg UP 30% / Coverage 20%.
+ * PR = weighted completion vs best references: Unit 50% / Active 33% / Special 17%.
+ * Active 33% is Avg UP 23% + Coverage 10%.
  */
 function rankByPowerRating(
   pool: TeamEvaluation[],
@@ -309,10 +317,13 @@ function rankByPowerRating(
   const unitRef = baseline?.effectiveStatTotal ?? Math.max(...use.map((t) => t.effectiveStatTotal));
   const avgRef = baseline?.avgScoreUp ?? Math.max(...use.map((t) => t.avgScoreUp));
   const coverageRef = baseline?.coverage ?? Math.max(...use.map((t) => t.coverage));
+  const specialRef = baseline
+    ? teamSpecialSynergy(baseline)
+    : Math.max(...use.map((t) => teamSpecialSynergy(t)));
 
   const raw = use.map((t) => ({
     t,
-    completion: prCompletion(t, unitRef, avgRef, coverageRef),
+    completion: prCompletion(t, unitRef, avgRef, coverageRef, specialRef),
   }));
 
   // With no external baseline, scale the best weighted completion to PR 9999.

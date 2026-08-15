@@ -1,5 +1,6 @@
 import type { Locale } from "../i18n/messages";
 import type { TeamEvaluation } from "../types";
+import { teamSpecialSynergy } from "./specialOrder";
 
 export type TeamDecisionMetrics = {
   d4cIndex: number;
@@ -11,6 +12,7 @@ export type TeamDecisionMetrics = {
   passiveTotal: number;
   costumeSatisfied: boolean;
   buffGain: number;
+  specialSynergy: number;
 };
 
 export type TeamMetricDiff = {
@@ -21,6 +23,7 @@ export type TeamMetricDiff = {
   coveragePctPoint: number;
   passiveSatisfied: number;
   buffGain: number;
+  specialSynergy: number;
 };
 
 export function teamDecisionKey(ev: TeamEvaluation): string {
@@ -52,6 +55,7 @@ export function teamDecisionMetrics(ev: TeamEvaluation): TeamDecisionMetrics {
     passiveTotal: ev.passiveDetails.length,
     costumeSatisfied: ev.costumeSatisfied,
     buffGain: ev.effectiveStatTotal - ev.baseStatTotal,
+    specialSynergy: teamSpecialSynergy(ev),
   };
 }
 
@@ -69,6 +73,7 @@ export function compareDecisionMetrics(
     coveragePctPoint: (am.coverage - bm.coverage) * 100,
     passiveSatisfied: am.passiveSatisfied - bm.passiveSatisfied,
     buffGain: am.buffGain - bm.buffGain,
+    specialSynergy: am.specialSynergy - bm.specialSynergy,
   };
 }
 
@@ -173,6 +178,17 @@ export function explainTeamDecision(
         ),
       });
     }
+    if (Math.abs(diff.specialSynergy) >= 0.01) {
+      reasons.push({
+        weight: Math.abs(diff.specialSynergy) / Math.max(1, reference ? teamSpecialSynergy(reference) : 1),
+        text: localized(
+          locale,
+          `Special × Active 聯動潛力 ${diff.specialSynergy >= 0 ? "較高" : "較低"}（差 ${signedNumber(diff.specialSynergy, 1)}）。`,
+          `Special × Active synergy is ${diff.specialSynergy >= 0 ? "higher" : "lower"} (${signedNumber(diff.specialSynergy, 1)} difference).`,
+          `Special × Active 連動ポテンシャルは ${diff.specialSynergy >= 0 ? "高い" : "低い"}です（差 ${signedNumber(diff.specialSynergy, 1)}）。`,
+        ),
+      });
+    }
   }
 
   if (selected.costumeSatisfied) {
@@ -203,15 +219,15 @@ export function explainTeamDecision(
   const headline = reference
     ? localized(
         locale,
-        `D4C 實戰指數 ${d4cBattleIndex(selected).toLocaleString()}，相較比較隊伍 ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)}。`,
-        `D4C Battle Index ${d4cBattleIndex(selected).toLocaleString()}, ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} versus the comparison team.`,
-        `D4C 実戦指数 ${d4cBattleIndex(selected).toLocaleString()}、比較編成との差は ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} です。`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}，相較比較隊伍 ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)}。`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}, ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} versus the comparison team.`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}、比較編成との差は ${signedNumber(d4cBattleIndex(selected) - d4cBattleIndex(reference), 0)} です。`,
       )
     : localized(
         locale,
-        `D4C 實戰指數 ${d4cBattleIndex(selected).toLocaleString()}。`,
-        `D4C Battle Index ${d4cBattleIndex(selected).toLocaleString()}.`,
-        `D4C 実戦指数 ${d4cBattleIndex(selected).toLocaleString()}。`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}。`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}.`,
+        `SC ${d4cBattleIndex(selected).toLocaleString()}。`,
       );
   return { headline, reasons: topReasons };
 }
