@@ -3,6 +3,7 @@ import type { Locale } from "../i18n/messages";
 import { d4cBattleIndex } from "../lib/teamDecision";
 import { evaluateTeam } from "../lib/optimizer";
 import { listName } from "../lib/names";
+import { recommendSpecialOrder, specialOrderMetrics } from "../lib/specialOrder";
 import {
   formatActiveSkill,
   formatCostumeSkillText,
@@ -195,6 +196,15 @@ export function ManualDeckLab({
   const selectedMembers = selectedCards.filter((card): card is Card => !!card).map((card) => card.member);
   const hasDuplicateMember = new Set(selectedMembers).size !== selectedMembers.length;
   const ready = selectedCards.every((card) => !!card) && !!selectedCostume && !hasDuplicateMember;
+  const specialSuggestion = useMemo(() => {
+    if (!ready) return [];
+    return recommendSpecialOrder(selectedCards.filter((card): card is Card => !!card));
+  }, [ready, selectedCards]);
+
+  function applySpecialSuggestion() {
+    if (specialSuggestion.length !== SLOT_COUNT) return;
+    setCardIds(specialSuggestion.map((entry) => entry.card.id));
+  }
 
   const evaluation = useMemo(() => {
     if (!ready || !selectedCostume) return null;
@@ -254,6 +264,9 @@ export function ManualDeckLab({
             <div className="manual-lab-actions">
               <button className="btn btn-ghost" type="button" disabled={!seedAvailable} onClick={loadSeedTeam}>
                 {localize(locale, "載入目前最佳隊", "Load current best", "現在の最適編成を読込")}
+              </button>
+              <button className="btn btn-ghost" type="button" disabled={!ready} onClick={applySpecialSuggestion}>
+                ↕ {localize(locale, "套用 Special 建議順序", "Apply Special order", "Special 推奨順を適用")}
               </button>
               <button className="btn btn-ghost" type="button" onClick={clearDraft}>
                 {localize(locale, "清空", "Clear", "クリア")}
@@ -346,11 +359,40 @@ export function ManualDeckLab({
           <p className="manual-order-note">
             {localize(
               locale,
-              "#1～#5 會保存為實際遊戲擺放順序。SC 目前不模擬特殊技能的發動先後，所以順序可以保留，但不會因此改變本頁 SC。",
-              "Slots #1–#5 are saved as the in-game order. SC does not currently model special-skill activation order, so reordering does not change SC here.",
-              "#1～#5 はゲーム内の配置順として保存されます。SC は現時点でスペシャルスキルの発動順をモデル化していないため、並べ替えてもこの画面の SC は変わりません。",
+              "#1～#5 就是遊戲內實際擺放順序，也是 Special Skill 的發動先後。可自行調整，或用上方按鈕套用實驗性建議順序；目前 PR／SC 不會把尚未公開的 Special 精確時點硬算進去。",
+              "Slots #1–#5 are the actual in-game order and therefore the Special Skill activation sequence. Reorder manually or apply the experimental suggestion above; PR/SC do not invent unconfirmed Special timing effects.",
+              "#1～#5 はゲーム内の実際の配置順で、Special Skill の発動順でもあります。手動調整または上の実験的推奨順を利用できます。未公開の正確な発動時点は PR／SC に無理に算入しません。",
             )}
           </p>
+          {selectedCards.some(Boolean) && (
+            <div className="manual-special-order">
+              <div className="manual-special-order-head">
+                <strong>{localize(locale, "目前 Special 發動序", "Current Special sequence", "現在の Special 発動順")}</strong>
+                <span className="special-order-badge">EXPERIMENTAL</span>
+              </div>
+              <div className="manual-special-order-list">
+                {selectedCards.map((card, index) => {
+                  if (!card) return null;
+                  const metrics = specialOrderMetrics(card);
+                  const reason = metrics.skillRate > 0
+                    ? localize(
+                        locale,
+                        `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}%`,
+                        `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}%`,
+                        `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}%`,
+                      )
+                    : `Support ${metrics.scoreSupport}% × ${metrics.duration}s`;
+                  return (
+                    <div key={`${card.id}-${index}`} className="manual-special-order-item">
+                      <span>#{index + 1}</span>
+                      <span>{listName(card.member, data.members[card.member]?.units ?? [], locale)} · {card.special.raw}</span>
+                      <small>{reason}</small>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="manual-lab-readout">

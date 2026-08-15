@@ -62,6 +62,7 @@ import {
   teamDecisionKey,
 } from "./lib/teamDecision";
 import { restoreFullBackup, stringifyFullBackup } from "./lib/fullBackup";
+import { specialOrderMetrics } from "./lib/specialOrder";
 import type { Attr, Card, Costume, GameData, TeamEvaluation } from "./types";
 
 const data = gameData as GameData;
@@ -2338,6 +2339,51 @@ export default function App() {
                       : "下面顯示的第 1～5 位就是遊戲內實際的編成位置，請照輸出的順序放入；不是單純的名單排序。"}
                 </span>
               </div>
+              <div className="special-order-panel">
+                <div className="special-order-head">
+                  <div>
+                    <strong>{locale === "ja" ? "Special Skill 発動順" : locale === "en" ? "Special Skill activation order" : "Special Skill 發動順序"}</strong>
+                    <small>
+                      {locale === "ja"
+                        ? "#1→#5 の順で発動。現在は Skill Rate UP を前寄せし、その後に Score Support × 継続時間を優先する実験的ルールです。"
+                        : locale === "en"
+                          ? "Activates #1→#5. The current experimental rule places Skill Rate UP earlier, then prioritizes Score Support × duration."
+                          : "會依 #1→#5 發動。目前採實驗性規則：優先把 Skill Rate UP 放前面，再依 Score Support × 持續時間排列。"}
+                    </small>
+                  </div>
+                  <span className="special-order-badge">EXPERIMENTAL</span>
+                </div>
+                <div className="special-order-list">
+                  {detailEv.cards.map((card, index) => {
+                    const metrics = specialOrderMetrics(card);
+                    const reason = metrics.skillRate > 0
+                      ? (locale === "ja"
+                          ? `${metrics.conditionalSkillRate ? "条件付き " : ""}Skill Rate +${metrics.skillRate}% を前寄せ`
+                          : locale === "en"
+                            ? `${metrics.conditionalSkillRate ? "Conditional " : ""}Skill Rate +${metrics.skillRate}% earlier`
+                            : `${metrics.conditionalSkillRate ? "條件型 " : ""}Skill Rate +${metrics.skillRate}% 優先前置`)
+                      : `Support ${metrics.scoreSupport}% × ${metrics.duration}s`;
+                    return (
+                      <div key={`special-${card.id}-${index}`} className="special-order-row">
+                        <span className="special-order-number">#{index + 1}</span>
+                        <div>
+                          <strong>{listName(card.member, unitsOf(card.member), locale)}</strong>
+                          <span>{card.special.raw}</span>
+                        </div>
+                        <small className="special-order-reason">{reason}</small>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="special-order-footnote">
+                  {locale === "ja"
+                    ? "Special は1ライブ中に1回、編成順で発動する仕様に合わせた順序提案です。正確な発動時点と公式スコア式は未公開のため、この順序効果はまだ PR／SC に加算していません。"
+                    : locale === "en"
+                      ? "This follows the confirmed one-Special-per-live, formation-order sequence. Exact trigger timing and the official score formula are not public, so order effects are not yet added to PR/SC."
+                      : "這個建議依據「Special 每場一次、按編成順序發動」的規則。由於精確觸發時點與官方分數公式尚未公開，順序效果目前不會硬加進 PR／SC。"}
+                </p>
+              </div>
+
               <div className="team">
                 {detailEv.cards.map((card, i) => {
                   const isLeader = detailEv.leaderIndex >= 0 && i === detailEv.leaderIndex;

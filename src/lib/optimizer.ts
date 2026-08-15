@@ -8,6 +8,7 @@ import {
   type ParamKey,
 } from "./stats";
 import type { Card, Costume, GameData, TeamEvaluation } from "../types";
+import { applyRecommendedSpecialOrder } from "./specialOrder";
 import {
   countOptimizerPoolCards,
   getPrBaselineEntry,
@@ -65,7 +66,7 @@ export function buildOptimizeResultFromCache(byOverall: TeamEvaluation[]): Optim
   const cached = byOverall.slice(0, 8);
   // Cached teams may carry PR values from an older scoring revision. Always
   // re-score the hydrated candidates with the current ratio-to-best formula.
-  const top = rankByPowerRating(cached, 8, null);
+  const top = rankByPowerRating(cached, 8, null).map(applyRecommendedSpecialOrder);
   const byStats = [...top].sort((a, b) => b.effectiveStatTotal - a.effectiveStatTotal);
   const byCoverage = [...top].sort((a, b) => b.coverage - a.coverage);
   const byAvgScoreUp = [...top].sort((a, b) => b.avgScoreUp - a.avgScoreUp);
@@ -379,10 +380,14 @@ function finishResult(
   trackSize: number,
   baseline: TeamEvaluation | null,
 ): OptimizeResult {
-  const byOverall = rankByPowerRating(prPool, trackSize, baseline);
+  const byOverall = rankByPowerRating(prPool, trackSize, baseline).map(applyRecommendedSpecialOrder);
+  const orderedByStats = byStats.map(applyRecommendedSpecialOrder);
+  const orderedByCoverage = byCoverage.map(applyRecommendedSpecialOrder);
+  const orderedByAvgScoreUp = byAvgScoreUp.map(applyRecommendedSpecialOrder);
+  const orderedBaseline = baseline ? applyRecommendedSpecialOrder(baseline) : null;
   const seen = new Set<string>();
   const top: TeamEvaluation[] = [];
-  for (const list of [byOverall, byAvgScoreUp, byCoverage, byStats]) {
+  for (const list of [byOverall, orderedByAvgScoreUp, orderedByCoverage, orderedByStats]) {
     for (const t of list) {
       const k = teamKey(t);
       if (seen.has(k)) continue;
@@ -391,13 +396,13 @@ function finishResult(
     }
   }
   return {
-    best: byOverall[0] ?? byAvgScoreUp[0] ?? byCoverage[0] ?? byStats[0] ?? null,
+    best: byOverall[0] ?? orderedByAvgScoreUp[0] ?? orderedByCoverage[0] ?? orderedByStats[0] ?? null,
     top,
     byOverall,
-    byStats,
-    byCoverage,
-    byAvgScoreUp,
-    baselineTeam: baseline,
+    byStats: orderedByStats,
+    byCoverage: orderedByCoverage,
+    byAvgScoreUp: orderedByAvgScoreUp,
+    baselineTeam: orderedBaseline,
     searched,
     elapsedMs: performance.now() - started,
   };
