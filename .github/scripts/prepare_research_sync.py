@@ -30,5 +30,22 @@ text = replace_once(
 """
 text = text[:block_start] + replacement + text[block_end:]
 
+# The new-account initializer is a single-line call in the current App.tsx.
+# Inject a precise post-patch replacement into the App migration before it writes.
+app_start = text.find('# ---------- App.tsx ----------')
+if app_start < 0:
+    raise SystemExit('App migration section not found')
+app_write = text.find('path.write_text(text)', app_start)
+if app_write < 0:
+    raise SystemExit('App migration write marker not found')
+profile_fix = r'''text = replace_once(
+    text,
+    '    saveRosterInventory(profile.id, { members: [], cardsByMember: {}, costumeIds: [] });\n',
+    '    saveRosterInventory(profile.id, { members: [], cardsByMember: {}, costumeIds: [], bloomByCardId: {} });\n',
+    "new profile bloom",
+)
+'''
+text = text[:app_write] + profile_fix + text[app_write:]
+
 path.write_text(text)
 print('prepared research sync script')
