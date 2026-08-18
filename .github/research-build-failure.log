@@ -1,0 +1,6 @@
+
+> holodream-optimizer@1.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(636,37): error TS2345: Argument of type '{ members: never[]; cardsByMember: {}; costumeIds: never[]; }' is not assignable to parameter of type 'RosterInventory'.
+  Property 'bloomByCardId' is missing in type '{ members: never[]; cardsByMember: {}; costumeIds: never[]; }' but required in type 'RosterInventory'.
