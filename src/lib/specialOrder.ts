@@ -1,4 +1,5 @@
 import { isConditionMet } from "./conditions";
+import { activeBaseProbability, activeProbabilityWithSkillRate } from "./skillProbability";
 import type { Card, TeamEvaluation } from "../types";
 
 type TeamConditionContext = Pick<TeamEvaluation, "typeCounts" | "unitCounts">;
@@ -34,14 +35,11 @@ function effectiveActiveScoreUp(card: Card, context?: TeamConditionContext): num
   return scoreUp;
 }
 
-/**
- * Approximate expected Active Score UP contribution before overlap handling.
- * Uses interval, duration, probability and the team-satisfied bonus value.
- */
+/** Approximate expected Active contribution before overlap handling. */
 function activeImpact(card: Card, context?: TeamConditionContext): number {
   const interval = Math.max(0, card.active.interval || 0);
   if (interval <= 0) return 0;
-  const probability = Math.min(1, Math.max(0, card.active.probability || 0));
+  const probability = activeBaseProbability(card.active);
   const duration = Math.max(0, card.active.duration || 0);
   return effectiveActiveScoreUp(card, context) * probability * (duration / interval);
 }
@@ -51,10 +49,9 @@ function teamActiveImpact(cards: Card[], context?: TeamConditionContext): number
 }
 
 /**
- * Estimate the extra Active opportunity created while a Skill Rate UP Special is live.
- * We conservatively model “+R% activation rate” as a relative probability uplift,
- * capped at 100%. This is explicitly heuristic because the official probability
- * application rule has not been published.
+ * Estimate extra Active opportunity while a Skill Rate UP Special is active.
+ * Current community research indicates rate boosts add first, then multiply the
+ * base activation chance; this helper applies that rule and caps at 100%.
  */
 function skillRateActiveGain(
   cards: Card[],
@@ -63,13 +60,12 @@ function skillRateActiveGain(
   context?: TeamConditionContext,
 ): number {
   if (skillRate <= 0 || specialDuration <= 0) return 0;
-  const rate = skillRate / 100;
   let gain = 0;
   for (const card of cards) {
     const interval = Math.max(0, card.active.interval || 0);
     if (interval <= 0) continue;
-    const p0 = Math.min(1, Math.max(0, card.active.probability || 0));
-    const p1 = Math.min(1, p0 * (1 + rate));
+    const p0 = activeBaseProbability(card.active);
+    const p1 = activeProbabilityWithSkillRate(card.active, skillRate);
     const scoreUp = effectiveActiveScoreUp(card, context);
     const activeDuration = Math.max(0, card.active.duration || 0);
     gain += scoreUp * (p1 - p0) * (activeDuration / interval);
@@ -77,10 +73,7 @@ function skillRateActiveGain(
   return gain * specialDuration;
 }
 
-/**
- * Estimate how much a Score Support Special can amplify the team’s expected Active
- * Score UP activity during its window. This is a comparison signal, not game score.
- */
+/** Comparison signal for Score Support × expected Active activity. */
 function scoreSupportActiveGain(
   cards: Card[],
   scoreSupport: number,
@@ -94,14 +87,12 @@ function scoreSupportActiveGain(
 /**
  * Experimental #1→#5 ordering signal.
  *
- * Confirmed behavior: each Special Skill activates once and activation order follows
- * formation order. The exact trigger timing and official score formula are not public.
- *
- * Unlike the first version, this model is Active-aware. It uses each Active skill’s
- * interval, probability, duration, Score UP and satisfied bonus condition to estimate
- * how strongly each Special could interact with the team’s Active package.
- *
- * PR and SC are intentionally unchanged by the ordering heuristic itself.
+ * Special Skills activate at five song-specific fixed positions in formation
+ * order. Because this tool does not yet load each song's five trigger positions
+ * and note-density curve, the exact ordering benefit cannot be simulated.
+ * The recommendation therefore compares each Special's researched interaction
+ * with the team's Active package: interval, activation probability, duration,
+ * Score UP, satisfied bonus conditions, Score Support and Skill Rate UP.
  */
 export function specialOrderMetrics(
   card: Card,
@@ -118,9 +109,6 @@ export function specialOrderMetrics(
   const rateGain = skillRateActiveGain(teamCards, skillRate, duration, context);
   const conditionalFactor = conditionalSkillRate ? 0.9 : 1;
   const activeSynergy = (supportGain + rateGain) * conditionalFactor;
-
-  // Active synergy drives the recommendation. Own Active value is only a small
-  // tie-break signal so two nearly identical Specials do not appear arbitrarily ordered.
   const priorityScore = activeSynergy + ownActiveImpact * 0.1;
 
   return {
@@ -130,7 +118,7 @@ export function specialOrderMetrics(
     duration,
     scoreSupport,
     supportPotential: duration * scoreSupport,
-    activeProbability: Math.min(1, Math.max(0, card.active.probability || 0)),
+    activeProbability: activeBaseProbability(card.active),
     activeScoreUp: effectiveActiveScoreUp(card, context),
     activeImpact: ownActiveImpact,
     activeSynergy,
@@ -138,11 +126,7 @@ export function specialOrderMetrics(
   };
 }
 
-/**
- * Team-level Special × Active package strength used as one relative PR component.
- * It sums the five Special-to-Active interaction potentials. This value is only
- * compared against other candidates in the same search; it is not an official score.
- */
+/** Team-level Special × Active comparison signal. Not an official score. */
 export function teamSpecialSynergy(team: TeamEvaluation): number {
   const context: TeamConditionContext = {
     typeCounts: team.typeCounts,
