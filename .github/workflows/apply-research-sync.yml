@@ -2,8 +2,8 @@ name: Apply latest Holodream research sync
 
 on:
   push:
-    paths:
-      - '.github/workflows/apply-research-sync.yml'
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -66,5 +66,3 @@ jobs:
           fi
           git commit -m "Sync Bloom and researched scoring mechanics"
           git push origin HEAD:main
-
-# retry 2026-08-18
