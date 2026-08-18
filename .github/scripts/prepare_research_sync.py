@@ -17,7 +17,7 @@ block_end = text.find('# Explain that Active metrics are probability-aware', blo
 if block_start < 0 or block_end < 0:
     raise SystemExit('manual lab migration section not found')
 
-replacement = r'''# Render Bloom controls immediately before the manual lab using stable short anchors.
+replacement = r"""# Render Bloom controls immediately before the manual lab using stable short anchors.
 manual_anchor = '''          <ManualDeckLab\n            data={data}\n'''
 bloom_panel = '''          <RosterBloomPanel\n            data={data}\n            locale={locale}\n            ownedCardIds={[...rosterOwnedCardIdsForOptimize()]}\n            bloomByCardId={rosterBloomMapForOptimize()}\n            onChange={setRosterBloomStage}\n          />\n'''
 text = replace_once(text, manual_anchor, bloom_panel + manual_anchor, "manual lab anchor")
@@ -27,7 +27,7 @@ text = replace_once(
     '            ownedCostumeIds={[...rosterOwnedCostumeIdsForOptimize()]}\n            cardBloomById={rosterBloomMapForOptimize()}\n',
     "manual bloom prop",
 )
-'''
+"""
 text = text[:block_start] + replacement + text[block_end:]
 
 path.write_text(text)
