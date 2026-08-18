@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "../i18n/messages";
 import { d4cBattleIndex } from "../lib/teamDecision";
+import { applyBloomMap } from "../lib/bloom";
 import { countTypes, countUnits } from "../lib/conditions";
 import { evaluateTeam } from "../lib/optimizer";
 import { listName } from "../lib/names";
@@ -22,6 +23,7 @@ type ManualDeckLabProps = {
   accountName: string;
   ownedCardIds: string[];
   ownedCostumeIds: string[];
+  cardBloomById: Record<string, number>;
   seedTeam: TeamEvaluation | null;
 };
 
@@ -53,6 +55,7 @@ export function ManualDeckLab({
   accountName,
   ownedCardIds,
   ownedCostumeIds,
+  cardBloomById,
   seedTeam,
 }: ManualDeckLabProps) {
   const storageKey = `holodream-manual-deck-v1:${accountId}`;
@@ -193,16 +196,20 @@ export function ManualDeckLab({
     () => cardIds.map((id) => cardMap.get(id) ?? null),
     [cardIds, cardMap],
   );
+  const effectiveSelectedCards = useMemo(
+    () => applyBloomMap(selectedCards.filter((card): card is Card => !!card), cardBloomById),
+    [cardBloomById, selectedCards],
+  );
   const selectedCostume = costumeMap.get(costumeId) ?? null;
   const selectedMembers = selectedCards.filter((card): card is Card => !!card).map((card) => card.member);
   const hasDuplicateMember = new Set(selectedMembers).size !== selectedMembers.length;
   const ready = selectedCards.every((card) => !!card) && !!selectedCostume && !hasDuplicateMember;
   const specialSuggestion = useMemo(() => {
     if (!ready) return [];
-    const cards = selectedCards.filter((card): card is Card => !!card);
+    const cards = effectiveSelectedCards;
     const context = { typeCounts: countTypes(cards), unitCounts: countUnits(cards, data) };
     return recommendSpecialOrder(cards, context);
-  }, [data, ready, selectedCards]);
+  }, [data, effectiveSelectedCards, ready]);
 
   function applySpecialSuggestion() {
     if (specialSuggestion.length !== SLOT_COUNT) return;
@@ -211,14 +218,14 @@ export function ManualDeckLab({
 
   const evaluation = useMemo(() => {
     if (!ready || !selectedCostume) return null;
-    const cards = selectedCards.filter((card): card is Card => !!card);
+    const cards = effectiveSelectedCards;
     const leaderIndex = cards.findIndex((card) => card.member === selectedCostume.member);
     return evaluateTeam(cards, leaderIndex, selectedCostume, data, data.songLengthDefault);
-  }, [data, ready, selectedCards, selectedCostume]);
+  }, [data, effectiveSelectedCards, ready, selectedCostume]);
 
   const statSummary = useMemo(() => {
     if (!evaluation) return null;
-    const cards = selectedCards.filter((card): card is Card => !!card);
+    const cards = effectiveSelectedCards;
     const base = cards.reduce(
       (sum, card) => {
         const stats = baseStats(card);
@@ -239,7 +246,7 @@ export function ManualDeckLab({
       { performance: 0, technique: 0, sense: 0 },
     );
     return { base, effective };
-  }, [evaluation, selectedCards]);
+  }, [effectiveSelectedCards, evaluation]);
 
   return (
     <details className="manual-deck-lab">

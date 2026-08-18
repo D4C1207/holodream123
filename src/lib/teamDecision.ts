@@ -30,18 +30,46 @@ export function teamDecisionKey(ev: TeamEvaluation): string {
   return `${ev.costume.id}|${ev.leaderIndex}|${ev.cards.map((card) => card.id).join(",")}`;
 }
 
+const DEFAULT_SCORE_SONG_LENGTH = 160;
+
 /**
- * SC（非官方估算）：
- * (加成後三圍 + 分數支援加權值) × (1 + 全曲平均有效 Score UP / 100)
- *
- * Unlike PR, this uses a fixed formula and never normalizes against the current
- * candidate pool, so scores from different inventories can be compared when
- * using the same song-length assumptions.
+ * Approximate full-song Score Support percentage. Persistent costume/passive
+ * support is converted from its power-weighted equivalent; each one-shot Special
+ * is averaged over song length because its exact song-specific trigger position
+ * is not loaded by this tool yet.
  */
-export function d4cBattleIndex(ev: TeamEvaluation): number {
-  const scoreSupportEquivalent = Math.max(0, ev.scoreSupportWeighted);
+export function estimatedScoreSupportPct(
+  ev: TeamEvaluation,
+  songLength = DEFAULT_SCORE_SONG_LENGTH,
+): number {
+  const persistent = ev.baseStatTotal > 0
+    ? (Math.max(0, ev.scoreSupportWeighted) / ev.baseStatTotal) * 100
+    : 0;
+  const special = songLength > 0
+    ? ev.cards.reduce(
+        (sum, card) => sum + Math.max(0, card.special.scoreSupport) * Math.min(songLength, Math.max(0, card.special.duration)) / songLength,
+        0,
+      )
+    : 0;
+  return persistent + special;
+}
+
+/**
+ * SC（非官方固定尺度估算）：
+ * Unit Value × expected Active Score-Up factor × estimated Score-Support factor.
+ *
+ * Community research indicates final score scales linearly with Total Power and
+ * Score Up is multiplied by (100% + Score Support). Active Avg UP is already
+ * probability-aware. Exact chart notes, combo, Special trigger positions, Board,
+ * Memory, Connect and Member Enhancement are intentionally outside this proxy.
+ */
+export function d4cBattleIndex(
+  ev: TeamEvaluation,
+  songLength = DEFAULT_SCORE_SONG_LENGTH,
+): number {
   const scoreUpMultiplier = 1 + Math.max(0, ev.avgScoreUp) / 100;
-  return Math.round((ev.effectiveStatTotal + scoreSupportEquivalent) * scoreUpMultiplier);
+  const supportMultiplier = 1 + estimatedScoreSupportPct(ev, songLength) / 100;
+  return Math.round(ev.effectiveStatTotal * scoreUpMultiplier * supportMultiplier);
 }
 
 export function teamDecisionMetrics(ev: TeamEvaluation): TeamDecisionMetrics {

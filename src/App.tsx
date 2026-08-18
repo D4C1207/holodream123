@@ -5,6 +5,7 @@ import { CardFilterToolbar, CardGroupBrowser } from "./components/CardBrowser";
 import { MemberName } from "./components/MemberName";
 import { Portrait } from "./components/Portrait";
 import { ManualDeckLab } from "./components/ManualDeckLab";
+import { RosterBloomPanel } from "./components/RosterBloomPanel";
 import { useI18n } from "./i18n/LocaleContext";
 import { LOCALES } from "./i18n/messages";
 import {
@@ -70,7 +71,8 @@ const STORAGE_LOCKED = "holodream-wanted-members";
 const STORAGE_PREF_CARDS = "holodream-preferred-cards";
 const STORAGE_LAST_ROSTER_SCORE = "holodream-roster-last-score-v1";
 const STORAGE_UI = "holodream-ui-v1";
-const DATA_SNAPSHOT = "2026-08-08";
+const DATA_SNAPSHOT = "2026-08-14";
+const RULES_REVIEWED = "2026-08-18";
 
 const allCardIds = new Set(data.cards.map((c) => c.id));
 const allCostumeIds = new Set(data.costumes.map((c) => c.id));
@@ -333,6 +335,9 @@ export default function App() {
   const [ownedRosterCostumeIds, setOwnedRosterCostumeIds] = useState<string[]>(
     rosterBootstrap.inventory.costumeIds,
   );
+  const [rosterCardBloom, setRosterCardBloom] = useState<Record<string, number>>(
+    rosterBootstrap.inventory.bloomByCardId,
+  );
 
   const wantedSet = useMemo(() => new Set(wantedMembers), [wantedMembers]);
   const rosterSet = useMemo(() => new Set(ownedRosterMembers), [ownedRosterMembers]);
@@ -583,17 +588,38 @@ export default function App() {
     members: string[],
     cardsByMember: Record<string, string[]>,
     costumeIds: string[],
+    bloomByCardId: Record<string, number> = rosterCardBloom,
   ) {
-    saveRosterInventory(activeRosterProfileId, { members, cardsByMember, costumeIds });
+    saveRosterInventory(activeRosterProfileId, { members, cardsByMember, costumeIds, bloomByCardId });
+  }
+
+  function rosterBloomMapForOptimize(cardIds = rosterOwnedCardIdsForOptimize()): Record<string, number> {
+    const next = { ...rosterCardBloom };
+    for (const id of cardIds) {
+      const card = cardById.get(id);
+      if (card?.rarity === 5 && next[id] == null) next[id] = 0;
+    }
+    return next;
+  }
+
+  function setRosterBloomStage(cardId: string, stage: number) {
+    setRosterCardBloom((prev) => {
+      const next = { ...prev, [cardId]: Math.max(0, Math.min(5, Math.floor(stage))) };
+      persistRosterSnapshot(ownedRosterMembers, rosterOwnedCards, ownedRosterCostumeIds, next);
+      return next;
+    });
+    setSimulation(null);
+    setResult(null);
   }
 
   function switchRosterProfile(profileId: string) {
-    const inventory = loadRosterInventory(profileId);
+    const inventory = loadRosterInventory(profileId, data);
     setActiveRosterProfileId(profileId);
     setActiveRosterProfile(profileId);
     setOwnedRosterMembers(inventory.members);
     setRosterOwnedCards(inventory.cardsByMember);
     setOwnedRosterCostumeIds(inventory.costumeIds);
+    setRosterCardBloom(inventory.bloomByCardId);
     setRosterRequiredMembers([]);
     setRosterFixedCaptain("");
     setSimulation(null);
@@ -607,7 +633,7 @@ export default function App() {
     const next = [...rosterProfiles, profile];
     setRosterProfiles(next);
     saveRosterProfiles(next);
-    saveRosterInventory(profile.id, { members: [], cardsByMember: {}, costumeIds: [] });
+    saveRosterInventory(profile.id, { members: [], cardsByMember: {}, costumeIds: [], bloomByCardId: {} });
     switchRosterProfile(profile.id);
   }
 
@@ -639,6 +665,7 @@ export default function App() {
       setOwnedRosterMembers(inventory.members);
       setRosterOwnedCards(inventory.cardsByMember);
       setOwnedRosterCostumeIds(inventory.costumeIds);
+    setRosterCardBloom(inventory.bloomByCardId);
       saveRosterInventory(activeRosterProfileId, inventory);
       setResult(null);
       alert(rosterUi.importOk);
@@ -653,6 +680,7 @@ export default function App() {
       members: ownedRosterMembers,
       cardsByMember: rosterOwnedCards,
       costumeIds: ownedRosterCostumeIds,
+      bloomByCardId: rosterBloomMapForOptimize(),
     });
     const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -703,10 +731,11 @@ export default function App() {
   function clearRosterMembers() {
     setOwnedRosterMembers([]);
     setRosterOwnedCards({});
+    setRosterCardBloom({});
     setRosterRequiredMembers([]);
     setRosterFixedCaptain("");
     setSimulation(null);
-    persistRosterSnapshot([], {}, ownedRosterCostumeIds);
+    persistRosterSnapshot([], {}, ownedRosterCostumeIds, {});
     setResult(null);
   }
 
@@ -948,6 +977,7 @@ export default function App() {
         fixedCostumeId: null,
         fixedMembers: rosterRequiredMembers,
         memberPool: ownedRosterMembers,
+        cardBloomById: rosterBloomMapForOptimize(),
         maxResults: 8,
         allowDuplicateSkills,
       },
@@ -1145,6 +1175,7 @@ export default function App() {
               fixedCostumeId: null,
               fixedMembers: rosterRequiredMembers,
               memberPool: beforeMembers,
+              cardBloomById: rosterBloomMapForOptimize(beforeIds),
               maxResults: 8,
               allowDuplicateSkills,
             }).byOverall[0] ?? null
@@ -1159,6 +1190,7 @@ export default function App() {
               fixedCostumeId: null,
               fixedMembers: rosterRequiredMembers,
               memberPool: afterMembers,
+              cardBloomById: { ...rosterBloomMapForOptimize(afterIds), [card.id]: rosterCardBloom[card.id] ?? 0 },
               maxResults: 8,
               allowDuplicateSkills,
             }).byOverall[0] ?? null
@@ -1724,6 +1756,13 @@ export default function App() {
             </div>
           )}
 
+          <RosterBloomPanel
+            data={data}
+            locale={locale}
+            ownedCardIds={[...rosterOwnedCardIdsForOptimize()]}
+            bloomByCardId={rosterBloomMapForOptimize()}
+            onChange={setRosterBloomStage}
+          />
           <ManualDeckLab
             data={data}
             locale={locale}
@@ -1731,6 +1770,7 @@ export default function App() {
             accountName={activeRosterProfile?.name ?? rosterUi.account}
             ownedCardIds={[...rosterOwnedCardIdsForOptimize()]}
             ownedCostumeIds={[...rosterOwnedCostumeIdsForOptimize()]}
+            cardBloomById={rosterBloomMapForOptimize()}
             seedTeam={result?.byOverall[0] ?? result?.best ?? null}
           />
 
@@ -2244,7 +2284,7 @@ export default function App() {
                 <div className="decision-score-card">
                   <span className="label">PR · {locale === "ja" ? "最高値比の完成度" : locale === "en" ? "Ratio-to-best completion" : "相對最高完成度"}</span>
                   <strong>{detailEv.powerRating?.toFixed(0) ?? "—"}</strong>
-                  <small>{locale === "ja" ? "Unit 50%・Active 33%・Special 17%" : locale === "en" ? "Unit 50% · Active 33% · Special 17%" : "Unit 50% · Active 33% · Special 17%"}</small>
+                  <small>{locale === "ja" ? "Unit 50%・Active 33%・Special 17%・Activeは期待発動率" : locale === "en" ? "Unit 50% · Active 33% · Special 17% · Active採期望發動率" : "Unit 50% · Active 33% · Special 17% · Active採期望發動率"}</small>
                 </div>
               </div>
               {whyOpen && decisionExplanation && (
@@ -2588,6 +2628,7 @@ export default function App() {
           {t.footer}
           <small className="data-version">
             {locale === "ja" ? "内蔵データ" : locale === "en" ? "Data snapshot" : "遊戲資料快照"} · {DATA_SNAPSHOT} · {data.cards.length} cards · {data.costumes.length} costumes
+            {" · "}{locale === "ja" ? "仕様確認" : locale === "en" ? "Mechanics reviewed" : "機制複核"} · {RULES_REVIEWED}
           </small>
         </span>
         <span className="footer-devil" aria-hidden />

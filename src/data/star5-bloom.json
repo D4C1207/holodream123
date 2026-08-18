@@ -1,0 +1,1644 @@
+{
+  "ときのそら_5_ひたむきに描く虹のうた": {
+    "activeLow": 85,
+    "activeHigh": 100,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "ロボ子さん_5_高性能なVサイン": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "AZKi_5_咲き誇る一途な花": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "0期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "0期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "さくらみこ_5_サクラBloom": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "星街すいせい_5_心奪うComet Tune": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "アキ・ローゼンタール_5_艶帯びたハーフエルフ": {
+    "activeLow": 50,
+    "activeHigh": 55,
+    "activeBonusLow": 95,
+    "activeBonusHigh": 115,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "赤井はあと_5_let's freestyle おやつタイム": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 135,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "白上フブキ_5_狐のお宮でこんこんこん": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 34,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 45,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "夏色まつり_5_ハジける快活チアリーダー": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 135,
+    "specialHigh": 145,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "1期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "百鬼あやめ_5_隠世でのほほん、気ままな提灯": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 30,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 41,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "癒月ちょこ_5_悪魔な魅惑に手玉にとられて": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "大空スバル_5_クワッとじゃれ合うアヒルの午後": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 34,
+        "targetGroup": "2期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 45,
+        "targetGroup": "2期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "大神ミオ_5_ホッととろけるnightscape": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "ゲーマーズ",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "ゲーマーズ",
+        "targetCount": 2
+      }
+    ]
+  },
+  "猫又おかゆ_5_宴の果てに、ナイショの戯れ": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "戌神ころね_5_Go! Go! Laughing Skater": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "兎田ぺこら_5_愛嬌たっぷりラビットフィールド": {
+    "activeLow": 95,
+    "activeHigh": 105,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 24,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 32,
+        "target": "self"
+      }
+    ]
+  },
+  "不知火フレア_5_ハーフエルフの風渡るゴンドラ": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "白銀ノエル_5_風薫るおっとり騎士": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 24,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 32,
+        "target": "self"
+      }
+    ]
+  },
+  "宝鐘マリン_5_妖艶あふれるマリンブルー": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "角巻わため_5_Woolly Smile Festival": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "常闇トワ_5_ガチで終わらんチルい夜遊び": {
+    "activeLow": 80,
+    "activeHigh": 95,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 34,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 45,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "姫森ルーナ_5_姫に忠誠アフタヌーン": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 32,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 43,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "雪花ラミィ_5_さびしがり屋な雪夜の令嬢": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "桃鈴ねね_5_一緒に歌お！イノセントリズム": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "獅白ぼたん_5_目を奪う神エイム！lion's hunt": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 105,
+    "activeBonusHigh": 125,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "尾丸ポルカ_5_変幻自在！ポルカサーカス開演！": {
+    "activeLow": 50,
+    "activeHigh": 55,
+    "activeBonusLow": 95,
+    "activeBonusHigh": 115,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "ラプラス・ダークネス_5_作戦開始！見せろ総帥の手腕": {
+    "activeLow": 105,
+    "activeHigh": 125,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "鷹嶺ルイ_5_組織支える超敏腕幹部": {
+    "activeLow": 50,
+    "activeHigh": 55,
+    "activeBonusLow": 95,
+    "activeBonusHigh": 115,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 24,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 32,
+        "target": "self"
+      }
+    ]
+  },
+  "博衣こより_5_助手くんの心を鷲掴みライブ！": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "風真いろは_5_ちくりんジャキン！と一刀両断": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "アユンダ・リス_5_いたずらたくらむ木漏れ日の森": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "ムーナ・ホシノヴァ_5_Lunar Songstress": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 34,
+        "targetGroup": "grp-indonesia-gen_1",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 45,
+        "targetGroup": "grp-indonesia-gen_1",
+        "targetCount": 2
+      }
+    ]
+  },
+  "アイラニ・イオフィフティーン_5_陽光射すCosmos Palette": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "クレイジー・オリー_5_Z nonstop talker": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "アーニャ・メルフィッサ_5_ソファに沈んでまったりゲーム": {
+    "activeLow": 85,
+    "activeHigh": 100,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "パヴォリア・レイネ_5_おすまし孔雀と嗜む一杯": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "ベスティア・ゼータ_5_陽だまりとネコと構成員": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "カエラ・コヴァルスキア_5_こころ強さは鍛冶場で研ぐ": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "こぼ・かなえる_5_あめ上がりの雨喜雨喜シャーマン": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 24,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 32,
+        "target": "self"
+      }
+    ]
+  },
+  "森カリオペ_5_Reaper's death flow": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "Myth",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "Myth",
+        "targetCount": 2
+      }
+    ]
+  },
+  "小鳥遊キアラ_5_Lovely Phoenixダイナー": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "一伊那尓栖_5_ぽかぽかチャージなひととき": {
+    "activeLow": 45,
+    "activeHigh": 45,
+    "activeBonusLow": 85,
+    "activeBonusHigh": 95,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 24,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 32,
+        "target": "self"
+      }
+    ]
+  },
+  "IRyS_5_nephilim sonority": {
+    "activeLow": 80,
+    "activeHigh": 95,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 32,
+        "targetGroup": "Promise",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 43,
+        "targetGroup": "Promise",
+        "targetCount": 2
+      }
+    ]
+  },
+  "オーロ・クロニー_5_典獄ささやくClock Tower": {
+    "activeLow": 50,
+    "activeHigh": 55,
+    "activeBonusLow": 95,
+    "activeBonusHigh": 115,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 30,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 41,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "ハコス・ベールズ_5_Chaotic Powerful Rat": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "シオリ・ノヴェラ_5_書庫ではぐくむ探究心": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "Advent",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "Advent",
+        "targetCount": 2
+      }
+    ]
+  },
+  "古石ビジュー_5_キラッキラCrystal place": {
+    "activeLow": 55,
+    "activeHigh": 65,
+    "activeBonusLow": 110,
+    "activeBonusHigh": 130,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "ネリッサ・レイヴンクロフト_5_歌に揺らめくノクターン": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 25,
+        "target": "self"
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 33,
+        "target": "self"
+      }
+    ]
+  },
+  "フワワ・アビスガード_5_ぽわぽわドーナツパーティー♪": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 110,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 30,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "テクニック",
+        "value": 41,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "モココ・アビスガード_5_のほほんドーナツパーティー♪": {
+    "activeLow": 105,
+    "activeHigh": 125,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 130,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "音乃瀬奏_5_パレードで笑顔をお届け": {
+    "activeLow": 75,
+    "activeHigh": 90,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 45,
+    "specialSkillRateHigh": 55,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ]
+  },
+  "一条莉々華_5_深夜にひと息、CEOの限界飯": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 135,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 34,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 45,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ]
+  },
+  "儒烏風亭らでん_5_叡智を灯し、アートに導く": {
+    "activeLow": 50,
+    "activeHigh": 55,
+    "activeBonusLow": 95,
+    "activeBonusHigh": 115,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "ReGLOSS",
+        "targetCount": 2
+      }
+    ]
+  },
+  "轟はじめ_5_ガーリー番長のお裾分け": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 30,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 41,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
+  },
+  "大空スバル_5_Energeticスプラッシュ！": {
+    "activeLow": 45,
+    "activeHigh": 55,
+    "activeBonusLow": 90,
+    "activeBonusHigh": 105,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 11,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "全パラメータ",
+        "value": 15,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "不知火フレア_5_sparks sunset": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 105,
+    "activeBonusHigh": 125,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 40,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "白銀ノエル_5_波まとうゆるふわKnight": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "3期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "角巻わため_5_真夏のもふもふフロートタイム": {
+    "activeLow": 50,
+    "activeHigh": 60,
+    "activeBonusLow": 100,
+    "activeBonusHigh": 120,
+    "specialLow": 110,
+    "specialHigh": 130,
+    "specialSkillRateLow": 35,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 8,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 11,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "音乃瀬奏_5_潮風にのせる、笑顔のハーモニー": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "pure",
+        "targetCount": 2
+      }
+    ]
+  },
+  "さくらみこ_5_ビーチで弾ける、光彩ショット！": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 120,
+    "specialHigh": 145,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "星街すいせい_5_夏に一閃！水鉄砲のアルペジオ": {
+    "activeLow": 100,
+    "activeHigh": 120,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "0期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "0期生",
+        "targetCount": 2
+      }
+    ]
+  }
+}

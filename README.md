@@ -36,11 +36,13 @@ Hololive Dreams（ホロドリ）粉絲製作的非官方工具：角色一覽�
 - 結果新增 P／T／S 特化排序，方便尋找表演力、技巧或感性取向的候選隊伍
 - 隊伍 A/B 比較：直接比較 PR、SC、Unit Value、Coverage、Avg UP 與被動
 - 「如果我有這張卡呢？」抽卡試算：不修改背包，暫時加入未持有卡重新配隊，並用固定 SC 比較前後差異
-- SC（非官方估算）：`（Unit Value + 分數支援加權值）×（1 + 全曲平均有效 Score UP / 100）`；不依候選池正規化，同曲長時可跨帳號比較
+- SC（非官方固定尺度估算）：依研究中的基本得分關係改為 `Unit Value × 期望 Active Score-Up 倍率 × 估計 Score-Support 倍率`；Active 高／中／低機率採社群實測約 55%／45%／35%，同曲長時可跨帳號比較
 - PR 採「相對最高完成度」：Unit Value 50%、Active 33%（Avg UP 23% + Coverage 10%）、Special × Active 聯動 17%，各項以本次候選最高值為 100%，再將最高綜合完成度換算為 9999
 - 隊伍收藏：所有遊戲帳號的收藏可在同一頁一次查看，並顯示帳號標籤
 - 收藏隊伍可加入自訂用途標籤並依標籤篩選
 - 一鍵完整備份／還原所有 `holodream-*` 瀏覽器資料，包含帳號、背包、收藏與 UI 設定
+- ★5 開花（Bloom）0～5 可依帳號逐卡保存，並直接套用原作者 2026-08-14 資料表調整三圍、Active、Special 與 Passive；舊背包為維持既有結果首次轉換視為開花5，新卡預設0
+- Active 改用機率期望模型：高／中／低約 55%／45%／35%，重疊時仍只取最強效果，Coverage 與 Avg UP 改為期望值
 - 編隊結果的第 1～5 位代表遊戲內實際位置，遊戲中應依網站輸出的相同順序擺放
 - Special Skill 發動順序建議：自動編隊會輸出 #1→#5 的實驗性順序，並把 Special 與五張卡的 Active 發動間隔、機率、持續時間、Score UP、已成立追加倍率一起評估；手動試算可一鍵套用或自行調整。精確的「位置時點效果」仍因官方觸發時點未公開而不直接加進 SC
 - 頁尾顯示內建遊戲資料快照日期、卡片數與衣裝數
@@ -66,10 +68,10 @@ Unit Value 是隊伍在衣裝與已成立被動增益後的 P／T／S 總和，�
 SC 採固定公式，不使用本次候選池的最大／最小值：
 
 ```text
-SC = (Unit Value + 分數支援加權值) × (1 + 全曲平均有效 Score UP / 100)
+SC = Unit Value × (1 + 期望 Avg Score UP / 100) × (1 + 估計平均 Score Support / 100)
 ```
 
-`Avg Score UP` 已經是包含技能空窗的全曲平均值，因此不再額外乘一次 Coverage，以免重複扣分。SC 為本工具的非官方估算，不等同遊戲官方分數公式；其用途是讓相同曲長假設下的不同帳號／不同試算結果有一致尺度可以比較。
+Active 的高／中／低機率依 hololive Dreams Lab 社群實測約 55%／45%／35% 計算；每個檢查點以機率期望值處理，重疊 Active 仍只取最強效果。Score Support 依已知得分乘法關係處理；因本工具尚未載入各歌曲五個 Special 固定觸發位置，Special Support 先按持續時間做全曲平均。SC 仍是非官方比較指標，不等同遊戲最終分數，也不包含玩家個別 Board、Memory、Connect、Member Enhancement 與實際譜面 Combo／判定。
 
 ## 本機開發
 
@@ -100,3 +102,9 @@ npm run build
 - 卡牌與技能資料來自公開攻略整理，可能隨遊戲版本更新
 - 數值顯示以滿綻放・滿等為基準
 - 本工具非官方，請勿將此專案誤認為遊戲官方服務
+
+## 資料／機制同步紀錄（2026-08-18）
+
+- 卡片、衣裝與 ★5 開花資料同步／核對原作者 `holodreams123-afk/holodream` 最新 2026-08-14 資料版本；原作者 8/15 另修正低開花技能文字。
+- 得分與技能機制交叉核對 hololive Dreams Lab、Horodori、AppMedia、Gamerch、Game8：Total Power 與分數線性、Active 為機率觸發且重疊取最強、Special 依 #1→#5 對應歌曲固定位置、Skill Rate UP 為乘法提升等。
+- Board、Memory、Connect 與 Member Enhancement 屬玩家個別育成狀態，目前不自動假設；未輸入的玩家專屬數值不會偷偷加進 SC／PR。

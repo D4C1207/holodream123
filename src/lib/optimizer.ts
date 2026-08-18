@@ -1,4 +1,6 @@
 import { calcScoreUpCoverage } from "./coverage";
+import { applyBloomMap } from "./bloom";
+import { activeBaseProbability } from "./skillProbability";
 import { countTypes, countUnits, isConditionMet, memberUnits } from "./conditions";
 import {
   calcEffectiveStats,
@@ -29,6 +31,8 @@ export interface OptimizeOptions {
   preferredCardByMember?: Record<string, string>;
   /** Members allowed in the 5-slot lineup (captain may be off-team). Omit = all ★5/event cards. */
   memberPool?: string[];
+  /** Optional per-card ★5 Bloom stage (0–5). Missing entries keep max-bloom gameData values. */
+  cardBloomById?: Record<string, number>;
   maxResults?: number;
   /**
    * When false, teams with duplicate active Score UP signatures are excluded.
@@ -162,10 +166,15 @@ function insertByMetric(
 
 /** Strongest unconstrained team under selected costume = this PR; all others scale relative to it. */
 const PR_MAX = 9999;
-function cardsForOptimizer(data: GameData, ownedCardIds: Set<string>): Card[] {
-  return data.cards.filter(
+function cardsForOptimizer(
+  data: GameData,
+  ownedCardIds: Set<string>,
+  bloomByCardId?: Record<string, number>,
+): Card[] {
+  const owned = data.cards.filter(
     (c) => ownedCardIds.has(c.id) && (c.rarity === 5 || !!c.event),
   );
+  return applyBloomMap(owned, bloomByCardId);
 }
 
 /** PR baseline search: no wanted members, ★5 + event card pool. */
@@ -175,6 +184,7 @@ function baselineSearchOptions(options: OptimizeOptions): OptimizeOptions {
     fixedMembers: [],
     preferredCardByMember: {},
     memberPool: undefined,
+    cardBloomById: undefined,
     allowDuplicateSkills: true,
   };
 }
@@ -499,8 +509,8 @@ function pickCardForMember(
     const ta = cardBaseTotal(a);
     const tb = cardBaseTotal(b);
     if (tb !== ta) return tb - ta;
-    const ca = (a.active.duration / Math.max(1, a.active.interval)) * a.active.scoreUp;
-    const cb = (b.active.duration / Math.max(1, b.active.interval)) * b.active.scoreUp;
+    const ca = (a.active.duration / Math.max(1, a.active.interval)) * a.active.scoreUp * activeBaseProbability(a.active);
+    const cb = (b.active.duration / Math.max(1, b.active.interval)) * b.active.scoreUp * activeBaseProbability(b.active);
     if (cb !== ca) return cb - ca;
     return b.passive.score - a.passive.score;
   })[0];
@@ -562,6 +572,7 @@ export function evaluateTeam(
       interval: c.active.interval,
       duration: c.active.duration,
       scoreUp: bonusOk && c.active.bonus ? c.active.bonus.scoreUp : c.active.scoreUp,
+      probability: activeBaseProbability(c.active),
     };
   });
 
@@ -678,7 +689,7 @@ function fillerPriority(
   const prefer = preferredParamFromEffects(costume.skill.effects);
   let score = cardBaseParam(card, prefer) + cardBaseTotal(card) * 0.15;
   score += card.passive.score * 80;
-  score += (card.active.duration / Math.max(1, card.active.interval)) * card.active.scoreUp * 40;
+  score += (card.active.duration / Math.max(1, card.active.interval)) * card.active.scoreUp * activeBaseProbability(card.active) * 40;
 
   const cond = costume.skill.condition;
   const units = memberUnits(data.members[member], card);
@@ -736,7 +747,7 @@ export function optimizeTeamFixedCostume(data: GameData, options: OptimizeOption
   }
 
   const preferParam = preferredParamFromEffects(costume.skill.effects);
-  const ownedCards = cardsForOptimizer(data, options.ownedCardIds);
+  const ownedCards = cardsForOptimizer(data, options.ownedCardIds, options.cardBloomById);
   const byMember = new Map<string, Card[]>();
   for (const c of ownedCards) {
     const list = byMember.get(c.member) ?? [];
@@ -846,7 +857,7 @@ export function optimizeTeam(data: GameData, options: OptimizeOptions): Optimize
     }
   }
 
-  const ownedCards = cardsForOptimizer(data, options.ownedCardIds);
+  const ownedCards = cardsForOptimizer(data, options.ownedCardIds, options.cardBloomById);
   const byMember = new Map<string, Card[]>();
   for (const c of ownedCards) {
     const list = byMember.get(c.member) ?? [];
@@ -1029,7 +1040,7 @@ export function optimizeTeamFast(data: GameData, options: OptimizeOptions): Opti
   const prPoolSize = 96;
   const preferred = options.preferredCardByMember ?? {};
   const allowDup = options.allowDuplicateSkills !== false;
-  const ownedCards = cardsForOptimizer(data, options.ownedCardIds);
+  const ownedCards = cardsForOptimizer(data, options.ownedCardIds, options.cardBloomById);
   const byMember = new Map<string, Card[]>();
   for (const c of ownedCards) {
     const list = byMember.get(c.member) ?? [];
