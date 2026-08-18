@@ -66,3 +66,5 @@ jobs:
           fi
           git commit -m "Sync Bloom and researched scoring mechanics"
           git push origin HEAD:main
+
+# retry 2026-08-18
