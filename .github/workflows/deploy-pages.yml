@@ -65,7 +65,23 @@ jobs:
       - run: npm ci
 
       - name: Build
-        run: npm run build
+        run: |
+          set +e
+          npm run build > /tmp/research-build.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/research-build.log
+          if [ "$status" -ne 0 ] && [ -f .github/scripts/apply_research_sync.py ]; then
+            cp /tmp/research-build.log .github/research-build-failure.log
+            git config user.name "D4C1207"
+            git config user.email "s1113708@mail.yzu.edu.tw"
+            git add .github/research-build-failure.log
+            if ! git diff --cached --quiet; then
+              git commit -m "Record research build failure"
+              git push origin HEAD:main
+            fi
+          fi
+          exit "$status"
         env:
           VITE_BASE: /holodream123/
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -84,6 +100,7 @@ jobs:
             rm -f .github/scripts/apply_research_sync.py
             rm -f .github/scripts/prepare_research_sync.py
             rm -f .github/research-sync-failure.log
+            rm -f .github/research-build-failure.log
             git config user.name "D4C1207"
             git config user.email "s1113708@mail.yzu.edu.tw"
             git add -A
