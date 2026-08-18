@@ -1,0 +1,64 @@
+.roster-bloom-panel {
+  margin: 0.85rem 0;
+  border: 1px solid rgba(107, 220, 255, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(6, 25, 42, 0.68), rgba(16, 18, 43, 0.64));
+  overflow: hidden;
+}
+
+.roster-bloom-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.85rem 0.95rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.roster-bloom-panel > summary::-webkit-details-marker { display: none; }
+.roster-bloom-panel > summary > span:first-child { display: grid; gap: 0.18rem; }
+.roster-bloom-panel summary strong { color: #ddf8ff; }
+.roster-bloom-panel summary small { color: var(--muted); line-height: 1.45; }
+.roster-bloom-count {
+  min-width: 2rem;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid rgba(111, 220, 255, 0.24);
+  border-radius: 999px;
+  color: #95e9ff;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+.roster-bloom-note {
+  margin: 0 0.85rem 0.75rem;
+  padding: 0.62rem 0.72rem;
+  border-left: 2px solid rgba(118, 230, 255, 0.55);
+  background: rgba(72, 170, 255, 0.055);
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+.roster-bloom-grid { display: grid; gap: 0.45rem; padding: 0 0.85rem 0.85rem; }
+.roster-bloom-row {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) 128px;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.055);
+  border-radius: 11px;
+  background: rgba(2, 10, 22, 0.35);
+}
+.roster-bloom-art { width: 46px !important; height: 62px !important; object-fit: cover; border-radius: 7px; }
+.roster-bloom-card-copy { display: grid; gap: 0.08rem; min-width: 0; }
+.roster-bloom-card-copy strong { color: #f0fbff; font-size: 0.82rem; }
+.roster-bloom-card-copy span { color: var(--muted); font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster-bloom-row label { display: grid; gap: 0.2rem; color: var(--muted); font-size: 0.68rem; }
+.roster-bloom-row select { width: 100%; min-height: 34px; }
+
+@media (max-width: 640px) {
+  .roster-bloom-row { grid-template-columns: 44px minmax(0, 1fr); }
+  .roster-bloom-row label { grid-column: 2; }
+  .roster-bloom-art { width: 40px !important; height: 54px !important; }
+}
