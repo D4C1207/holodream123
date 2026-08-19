@@ -1,13 +1,14 @@
 import type { ActiveSkill } from "../types";
 
 /**
- * Community-researched Active activation estimates (hololive Dreams Lab, reviewed 2026-08-18).
- * These intentionally override the older provisional numeric values in gameData.
+ * Community-researched Active activation estimates used by current Holodori
+ * optimizer models (reviewed 2026-08-19). These intentionally override the
+ * older provisional numeric values embedded in legacy gameData.
  */
 export const ACTIVE_PROBABILITY_ESTIMATE: Record<string, number> = {
   高確率: 0.55,
-  中確率: 0.45,
-  低確率: 0.35,
+  中確率: 0.46,
+  低確率: 0.37,
 };
 
 export function activeBaseProbability(active: ActiveSkill): number {
