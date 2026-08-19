@@ -1640,5 +1640,145 @@
         "targetCount": 2
       }
     ]
+  },
+  "百鬼あやめ_5_鬼神流・ぷかぷかリゾート": {
+    "activeLow": 95,
+    "activeHigh": 115,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 9,
+        "targetGroup": "2期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "scoreSupportPassive",
+        "value": 12,
+        "targetGroup": "2期生",
+        "targetCount": 2
+      }
+    ]
+  },
+  "姫森ルーナ_5_のんびり姫のおねだりビーチ": {
+    "activeLow": 105,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 110,
+    "specialHigh": 130,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 50,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 32,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "パフォーマンス",
+        "value": 43,
+        "targetGroup": "4期生",
+        "targetCount": 2
+      }
+    ],
+    "activeDurationLow": 7,
+    "activeDurationHigh": 8
+  },
+  "森カリオペ_5_ビーチに刺さるReaper's Spike": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 95,
+    "specialHigh": 115,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "cute",
+        "targetCount": 2
+      }
+    ]
+  },
+  "一伊那尓栖_5_潮騒の記憶をたどって": {
+    "activeLow": 85,
+    "activeHigh": 100,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 100,
+    "specialHigh": 120,
+    "specialSkillRateLow": 40,
+    "specialSkillRateHigh": 45,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "Myth",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "Myth",
+        "targetCount": 2
+      }
+    ]
+  },
+  "クレイジー・オリー_5_常夏のCrazy Dive": {
+    "activeLow": 90,
+    "activeHigh": 110,
+    "activeBonusLow": null,
+    "activeBonusHigh": null,
+    "specialLow": 135,
+    "specialHigh": 160,
+    "specialSkillRateLow": null,
+    "specialSkillRateHigh": null,
+    "passiveLow": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 32,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ],
+    "passiveHigh": [
+      {
+        "kind": "paramUp",
+        "param": "センス",
+        "value": 43,
+        "targetGroup": "happy",
+        "targetCount": 2
+      }
+    ]
   }
 }

@@ -71,8 +71,8 @@ const STORAGE_LOCKED = "holodream-wanted-members";
 const STORAGE_PREF_CARDS = "holodream-preferred-cards";
 const STORAGE_LAST_ROSTER_SCORE = "holodream-roster-last-score-v1";
 const STORAGE_UI = "holodream-ui-v1";
-const DATA_SNAPSHOT = "2026-08-14";
-const RULES_REVIEWED = "2026-08-18";
+const DATA_SNAPSHOT = "2026-08-18";
+const RULES_REVIEWED = "2026-08-19";
 
 const allCardIds = new Set(data.cards.map((c) => c.id));
 const allCostumeIds = new Set(data.costumes.map((c) => c.id));
