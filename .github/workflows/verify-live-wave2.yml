@@ -1,0 +1,85 @@
+name: Verify Live Summer Wave 2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-live-wave2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build source
+        env:
+          VITE_BASE: /holodream123/
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify built bundle contains wave 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle=$(find dist/assets -maxdepth 1 -type f -name 'index-*.js' | head -n 1)
+          test -n "$bundle"
+          for title in \
+            "鬼神流・ぷかぷかリゾート" \
+            "のんびり姫のおねだりビーチ" \
+            "ビーチに刺さるReaper's Spike" \
+            "潮騒の記憶をたどって" \
+            "常夏のCrazy Dive"; do
+            grep -Fq "$title" "$bundle"
+          done
+
+      - name: Wait for public Pages bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://d4c1207.github.io/holodream123/'
+          ok=0
+          for attempt in $(seq 1 60); do
+            html=$(curl -fsSL --retry 2 --retry-delay 1 "${base}?verify=${GITHUB_SHA}-${attempt}" || true)
+            asset=$(printf '%s' "$html" | grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' | head -n 1 || true)
+            if [ -n "$asset" ]; then
+              curl -fsSL --retry 2 --retry-delay 1 "${base}${asset}?verify=${GITHUB_SHA}-${attempt}" -o /tmp/live.js || true
+              if grep -Fq "鬼神流・ぷかぷかリゾート" /tmp/live.js 2>/dev/null \
+                && grep -Fq "のんびり姫のおねだりビーチ" /tmp/live.js \
+                && grep -Fq "ビーチに刺さるReaper's Spike" /tmp/live.js \
+                && grep -Fq "潮騒の記憶をたどって" /tmp/live.js \
+                && grep -Fq "常夏のCrazy Dive" /tmp/live.js; then
+                echo "Live Pages contains all five new cards: $asset"
+                ok=1
+                break
+              fi
+            fi
+            echo "Waiting for Pages deployment ($attempt/60)..."
+            sleep 10
+          done
+          test "$ok" -eq 1
+
+      - name: Record successful live verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/verify-live-wave2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/verify-live-wave2.yml
+          git commit -m "Verify live summer wave 2 deployment"
+          git push
