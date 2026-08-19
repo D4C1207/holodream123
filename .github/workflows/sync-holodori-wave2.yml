@@ -1,0 +1,69 @@
+name: Sync Holodori Summer Wave 2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-holodori-wave2.yml"
+      - "scripts/syncHolodoriSummerWave2.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Sync latest Holodori wave 2 data
+        run: node scripts/syncHolodoriSummerWave2.mjs
+
+      - name: Verify new cards and Bloom data
+        shell: bash
+        run: |
+          set -euo pipefail
+          for title in \
+            "鬼神流・ぷかぷかリゾート" \
+            "のんびり姫のおねだりビーチ" \
+            "ビーチに刺さるReaper's Spike" \
+            "潮騒の記憶をたどって" \
+            "常夏のCrazy Dive"; do
+            grep -Fq "$title" src/data/gameData.json
+            grep -Fq "$title" src/data/star5-bloom.json
+          done
+          grep -Fq '"activeDurationLow": 7' src/data/star5-bloom.json
+          grep -Fq '"activeDurationHigh": 8' src/data/star5-bloom.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_BASE: /holodream123/
+        run: npm run build
+
+      - name: Commit synced data
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/sync-holodori-wave2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/gameData.json src/data/star5-bloom.json src/App.tsx .github/workflows/sync-holodori-wave2.yml
+          if git diff --cached --quiet; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git commit -m "Sync five new summer cards with Bloom progression"
+          git push
