@@ -2,7 +2,7 @@ import type { Card, CardStats, PassiveSkill } from "../types";
 import bloomTable from "../data/star5-bloom.json";
 
 export const MAX_BLOOM = 5;
-/** Roster default: bloom 0 (gameData stores max-bloom values). */
+/** Roster default: Bloom 0. gameData stores the current max modeled state. */
 export const DEFAULT_BLOOM = 0;
 
 export type Star5BloomEntry = {
@@ -10,17 +10,25 @@ export type Star5BloomEntry = {
   activeHigh: number | null;
   activeBonusLow: number | null;
   activeBonusHigh: number | null;
+  /** Optional timing changes introduced by Bloom 1. */
+  activeIntervalLow?: number | null;
+  activeIntervalHigh?: number | null;
+  activeDurationLow?: number | null;
+  activeDurationHigh?: number | null;
   specialLow: number | null;
   specialHigh: number | null;
   specialSkillRateLow: number | null;
   specialSkillRateHigh: number | null;
+  /** Kept for future cards whose Special duration itself changes. */
+  specialDurationLow?: number | null;
+  specialDurationHigh?: number | null;
   passiveLow: PassiveSkill["effects"];
   passiveHigh: PassiveSkill["effects"];
 };
 
 const table = bloomTable as Record<string, Star5BloomEntry>;
 
-/** Match gameData card ids even when wf-calc title punctuation differs. */
+/** Match gameData card ids even when source title punctuation differs. */
 function canonicalTitleKey(title: string): string {
   return String(title ?? "")
     .normalize("NFKC")
@@ -72,7 +80,15 @@ export function getStar5BloomEntry(cardId: string): Star5BloomEntry | null {
   return table[cardId] ?? tableByLookupKey.get(bloomLookupKey(cardId)) ?? null;
 }
 
-/** Apply ★5 bloom stage (0–5). Stage 5 = max (matches committed gameData). */
+/**
+ * Apply current ★5 Bloom 0–5 progression to a max-modeled gameData card.
+ * Community/HolodoriDB progression currently behaves as:
+ * 0 base skills → 1 Active upgrade → 2 +10% all stats → 3 Special upgrade
+ * → 4 Passive upgrade → 5 Connect/Board upgrade.
+ *
+ * Connect/Board is not modeled yet, so Bloom 4 and 5 can intentionally score
+ * the same in D4C. Stage 5 still returns the committed max-modeled card.
+ */
 export function applyBloomToCard(card: Card, bloom: number): Card {
   if (card.rarity !== 5) return card;
   const stage = Math.max(0, Math.min(MAX_BLOOM, Math.floor(bloom)));
@@ -81,25 +97,32 @@ export function applyBloomToCard(card: Card, bloom: number): Card {
   const entry = getStar5BloomEntry(card.id);
   if (!entry) return card;
 
-  // gameData = 满绽三围；绽 0–1 = ÷1.1（少 10%）；绽 2+ 不扣
-  const stats =
-    card.stats && stage < 2 ? scaleStats(card.stats, 1 / 1.1) : card.stats;
+  // gameData stores the post-Bloom-2 stat state. Bloom 0–1 lack the +10% all-stat bonus.
+  const stats = card.stats && stage < 2 ? scaleStats(card.stats, 1 / 1.1) : card.stats;
 
   const activeScoreUp =
     stage >= 1
       ? (entry.activeHigh ?? card.active.scoreUp)
       : (entry.activeLow ?? card.active.scoreUp);
+  const activeInterval =
+    stage >= 1
+      ? (entry.activeIntervalHigh ?? entry.activeIntervalLow ?? card.active.interval)
+      : (entry.activeIntervalLow ?? card.active.interval);
+  const activeDuration =
+    stage >= 1
+      ? (entry.activeDurationHigh ?? entry.activeDurationLow ?? card.active.duration)
+      : (entry.activeDurationLow ?? card.active.duration);
 
-  let active = { ...card.active, scoreUp: activeScoreUp };
-  if (
-    card.active.bonus &&
-    (entry.activeBonusLow != null || entry.activeBonusHigh != null)
-  ) {
+  let active = {
+    ...card.active,
+    interval: activeInterval,
+    duration: activeDuration,
+    scoreUp: activeScoreUp,
+  };
+  if (card.active.bonus && (entry.activeBonusLow != null || entry.activeBonusHigh != null)) {
     const bonusScoreUp =
       stage >= 1
-        ? (entry.activeBonusHigh ??
-          entry.activeBonusLow ??
-          card.active.bonus.scoreUp)
+        ? (entry.activeBonusHigh ?? entry.activeBonusLow ?? card.active.bonus.scoreUp)
         : (entry.activeBonusLow ?? card.active.bonus.scoreUp);
     active = {
       ...active,
@@ -111,14 +134,16 @@ export function applyBloomToCard(card: Card, bloom: number): Card {
     stage >= 3
       ? (entry.specialHigh ?? card.special.scoreSupport)
       : (entry.specialLow ?? card.special.scoreSupport);
+  const specialDuration =
+    stage >= 3
+      ? (entry.specialDurationHigh ?? entry.specialDurationLow ?? card.special.duration)
+      : (entry.specialDurationLow ?? card.special.duration);
 
-  let special = { ...card.special, scoreSupport: specialSupport };
+  let special = { ...card.special, duration: specialDuration, scoreSupport: specialSupport };
   if (entry.specialSkillRateLow != null || entry.specialSkillRateHigh != null) {
     const skillRate =
       stage >= 3
-        ? (entry.specialSkillRateHigh ??
-          entry.specialSkillRateLow ??
-          card.special.skillRate)
+        ? (entry.specialSkillRateHigh ?? entry.specialSkillRateLow ?? card.special.skillRate)
         : (entry.specialSkillRateLow ?? card.special.skillRate);
     special = { ...special, skillRate };
   }
